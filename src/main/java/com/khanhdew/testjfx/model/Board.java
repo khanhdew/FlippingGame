@@ -5,8 +5,8 @@ import javafx.scene.paint.Color;
 
 
 public class Board {
-    public static int MAX_COL = 10;
-    public static int MAX_ROW = 10;
+    public static int MAX_COL = 5;
+    public static int MAX_ROW = 5;
     public static final double SCALE = (Math.max(MAX_COL,MAX_ROW)*1.0f/8);
     public static final int SQUARE_SIZE = (int) (100.0f/SCALE);
     public static final int HALF_SQUARE_SIZE = SQUARE_SIZE/2;
@@ -19,7 +19,8 @@ public class Board {
                 } else {
                     gc.setFill(Color.rgb(6, 93, 6));
                 }
-                gc.fillRect(col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+//                if(row==0||row==MAX_ROW-1||col==0||col==MAX_COL-1) gc.setFill(Color.web("#663F25FF"));
+                gc.fillRect(    col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
 //                gc.setFill(Color.BLACK);
 //                gc.fillText(x+"", col * SQUARE_SIZE + 10, row * SQUARE_SIZE + 10);
                 x++;

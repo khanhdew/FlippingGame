@@ -173,12 +173,19 @@ public class GamePane extends BorderPane {
             if (p1.getScore() > p2.getScore()) {
                 dialogPane.setContentText("Player 1 win");
                 Button button = new Button("OK");
-                dialogPane.setContent(button);
+                dialogPane.getChildren().add(button);
+                gamePane.getChildren().add(dialogPane);
 
             } else if (p1.getScore() < p2.getScore()) {
-                System.out.println("Player 2 win");
+                dialogPane.setContentText("Player 2 win");
+                Button button = new Button("OK");
+                dialogPane.getChildren().add(button);
+                gamePane.getChildren().add(dialogPane);
             } else {
-                System.out.println("Draw");
+                dialogPane.setContentText("Draw");
+                Button button = new Button("OK");
+                dialogPane.getChildren().add(button);
+                gamePane.getChildren().add(dialogPane);
             }
         } else {
             if (turn == 1) {
@@ -249,6 +256,9 @@ public class GamePane extends BorderPane {
         pane.setSpacing(20);
         pane.setFillHeight(true);
         scorePane.setTop(pane);
+    }
+    public void showBtn(){
+
     }
 
     public void calDimension() {
