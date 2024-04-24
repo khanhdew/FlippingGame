@@ -5,11 +5,19 @@ import javafx.scene.paint.Color;
 
 
 public class Board {
-    public static int MAX_COL = 5;
-    public static int MAX_ROW = 5;
-    public static final double SCALE = (Math.max(MAX_COL,MAX_ROW)*1.0f/8);
-    public static final int SQUARE_SIZE = (int) (100.0f/SCALE);
-    public static final int HALF_SQUARE_SIZE = SQUARE_SIZE/2;
+    public static int MAX_COL ;
+    public static int MAX_ROW ;
+    public static double SCALE;
+    public static int SQUARE_SIZE;
+    public static int HALF_SQUARE_SIZE;
+
+    public Board(int row, int col){
+        MAX_COL = col;
+        MAX_ROW = row;
+        SCALE = (Math.max(MAX_COL,MAX_ROW)*1.0f/8);
+        SQUARE_SIZE = (int) (100.0f/SCALE);
+    }
+
     public static void draw(GraphicsContext gc){
         int x = 0;
         for (int row = 0; row < MAX_ROW; row++) {
@@ -32,5 +40,21 @@ public class Board {
     }
     public static void setMAX_ROW(int row){
         MAX_ROW = row;
+    }
+
+    public static int getSquareSize(){
+        return SQUARE_SIZE;
+    }
+
+    public static double getSCALE(){
+        return SCALE;
+    }
+
+    public static int getMaxCol() {
+        return MAX_COL;
+    }
+
+    public static int getMaxRow() {
+        return MAX_ROW;
     }
 }

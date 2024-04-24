@@ -82,7 +82,6 @@ public class BoardHelper {
                     for (int j = col; j <= col + 1; j++) {
                         if (board[i][j] == opponent) {
                             changes.add(new Piece(i, j, playerState));
-                            board[i][j] = playerId;
                         }
                     }
                 }
@@ -91,7 +90,6 @@ public class BoardHelper {
                     for (int j = col - 1; j <= col; j++) {
                         if (board[i][j] == opponent) {
                             changes.add(new Piece(i, j, playerState));
-                            board[i][j] = playerId;
                         }
                     }
                 }
@@ -101,7 +99,6 @@ public class BoardHelper {
                     for (int j = col - 1; j <= col + 1; j++) {
                         if (board[i][j] == opponent) {
                             changes.add(new Piece(i, j, playerState));
-                            board[i][j] = playerId;
                         }
                     }
                 }
@@ -112,49 +109,41 @@ public class BoardHelper {
             if (col == 0) {
                 if (board[row][col + 1] == opponent) {
                     changes.add(new Piece(row, col + 1, playerState));
-                    board[row][col + 1] = playerId;
                 }
                 if (board[row - 1][col] == opponent) {
                     changes.add(new Piece(row - 1, col, playerState));
-                    board[row - 1][col] = playerId;
                 }
                 if (board[row - 1][col+1] == opponent) {
                     changes.add(new Piece(row - 1, col + 1, playerState));
-                    board[row - 1][col+1] = playerId;
                 }
             } else if (col == BOARD_COL - 1) {
                 if (board[row-1][col] == opponent) {
                     changes.add(new Piece(row-1, col, playerState));
-                    board[row-1][col] = playerId;
                 }
                 if (board[row - 1][col-1] == opponent) {
                     changes.add(new Piece(row - 1, col-1, playerState));
-                    board[row - 1][col-1] = playerId;
                 }
                 if (board[row][col-1] == opponent) {
                     changes.add(new Piece(row, col - 1, playerState));
-                    board[row][col-1] = playerId;
                 }
             } else {
                 if (board[row][col + 1] == opponent) {
                     changes.add(new Piece(row, col + 1, playerState));
-                    board[row][col + 1] = playerId;
                 }
                 if (board[row - 1][col] == opponent) {
                     changes.add(new Piece(row - 1, col, playerState));
-                    board[row - 1][col] = playerId;
                 }
                 if (board[row - 1][col+1] == opponent) {
                     changes.add(new Piece(row - 1, col + 1, playerState));
-                    board[row - 1][col+1] = playerId;
+
                 }
                 if (board[row][col - 1] == opponent) {
                     changes.add(new Piece(row, col - 1, playerState));
-                    board[row][col - 1] = playerId;
+
                 }
                 if (board[row - 1][col-1] == opponent) {
                     changes.add(new Piece(row - 1, col-1, playerState));
-                    board[row - 1][col-1] = playerId;
+
                 }
             }
             return changes;

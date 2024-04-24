@@ -6,6 +6,7 @@ module com.khanhdew.testjfx {
     requires com.almasb.fxgl.all;
     requires java.desktop;
 
+
     opens com.khanhdew.testjfx to javafx.fxml;
     exports com.khanhdew.testjfx;
 }

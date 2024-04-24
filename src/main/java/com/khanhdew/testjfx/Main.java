@@ -1,8 +1,9 @@
 package com.khanhdew.testjfx;
 
 
-import com.khanhdew.testjfx.view.GamePane;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -15,8 +16,16 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         stage.setTitle("Flipping");
-        GamePane gamePane = new GamePane();
-        stage.setScene(new Scene(gamePane, GamePane.WIDTH, GamePane.HEIGHT));
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("welcomepane.fxml"));
+        Parent welcomePane = loader.load();
+
+        WelcomePaneController controller = loader.getController();
+        controller.setStage(stage);
+
+
+        Scene scene = new Scene(welcomePane, 500, 500);
+        stage.setScene(scene);
         stage.setResizable(false);
         stage.getIcons().add(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));
         stage.show();

@@ -11,9 +11,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.DialogPane;
+import javafx.application.Platform;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -39,19 +38,23 @@ public class GamePane extends BorderPane {
     public Canvas c1;
 
 
-    Board board = new Board();
+    Board board;
     Mouse mouse = new Mouse();
 
-    Player p1 = new HumanPlayer(1, "Player 1");
-    Player p2 = new HumanPlayer(2, "Player 2");
+    Player p1;
+    Player p2;
     int turn = 1;
 
 
     public static ArrayList<Piece> pieces = new ArrayList<>();
-    public static int[][] matrix = new int[Board.MAX_ROW][Board.MAX_COL];
+    public static int[][] matrix;
 
-    public GamePane() {
+    public GamePane(int row, int col) {
+        board = new Board(row, col);
+        matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
         calDimension();
+        p1 = new HumanPlayer(1, "Player 1");
+        p2 = new HumanPlayer(2, "Player 2");
         scorePane = new BorderPane();
         scoreScene = new Scene(scorePane, 300, 800);
         scoreScene.setFill(Color.BLACK);
@@ -76,6 +79,8 @@ public class GamePane extends BorderPane {
         this.setRight(scorePane);
 
         // Player timer
+        showBtn();
+        showMenu();
 
 
         new AnimationTimer() {
@@ -86,14 +91,12 @@ public class GamePane extends BorderPane {
                 if (lastTick == 0) {
                     lastTick = now;
                     update();
-
                     showScore();
                     return;
                 }
                 if (now - lastTick > 1000000000 / 60) {
                     lastTick = now;
                     update();
-
                     showScore();
                 }
             }
@@ -101,11 +104,20 @@ public class GamePane extends BorderPane {
     }
 
     public void setPieces() {
-        int BOARD_COL = Board.MAX_COL;
-        int BOARD_ROW = Board.MAX_ROW;
+        int BOARD_COL = Board.getMaxCol();
+        int BOARD_ROW = Board.getMaxRow();
         for (int i = 0; i < BOARD_ROW; i++) {
             for (int j = 0; j < BOARD_COL; j++) {
-                pieces.add(new Piece(i, j, PieceState.EMPTY));
+                Piece piece = new Piece(i, j, PieceState.EMPTY);
+//                piece.setOnMouseEntered(e -> {
+//                    System.out.println("Entered" + piece);
+//                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                });
+//                piece.setOnMouseExited(e -> {
+//                    System.out.println("Exited" + piece);
+//                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                });
+                pieces.add(piece);
             }
         }
 //        for (Piece piece : pieces) {
@@ -118,16 +130,21 @@ public class GamePane extends BorderPane {
     }
 
     public void resetBoard() {
+        gamePane.getChildren().clear();
+        gamePane.getChildren().add(c1);
         pieces.clear();
         setPieces();
+        for (Piece piece : pieces) {
+            gamePane.getChildren().add(piece);
+        }
+        p1.setScore(0);
+        p2.setScore(0);
+        turn = 1;
     }
 
     public void update() {
         for (Piece piece : pieces) {
             piece.updateState(piece.getCurrentState());
-//            piece.setOnMouseEntered(e -> {
-//
-//            });
         }
         if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
             if (move(mouse.getCol(), mouse.getRow(), turn))
@@ -137,13 +154,16 @@ public class GamePane extends BorderPane {
         showScore();
     }
 
+    private int getTurn() {
+        return turn;
+    }
+
     public boolean move(int col, int row, int playerId) {
-        LOOP:
         for (Piece piece : pieces) {
             if (piece.getCol() == col && piece.getRow() == row) {
                 if (piece.getCurrentState() == PieceState.EMPTY) {
                     piece.setState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
-                    changePieceState(BoardHelper.getPieceChangeForEachMove(matrix, playerId, row, col));
+                    changePieceState(BoardHelper.getPieceChangeForEachMove(matrix, playerId, row, col), playerId);
                     BoardHelper.toMatrix(matrix, piece);
                     //BoardHelper.printMatrix(matrix);
                     return true;
@@ -153,7 +173,7 @@ public class GamePane extends BorderPane {
         return false;
     }
 
-    public void changePieceState(ArrayList<Piece> changes) {
+    public void changePieceState(ArrayList<Piece> changes, int playerId) {
 //        for(Piece piece : changes){
 //            System.out.println(piece);
 //        }
@@ -161,6 +181,7 @@ public class GamePane extends BorderPane {
             for (Piece p : pieces) {
                 if (p.getCol() == piece.getCol() && p.getRow() == piece.getRow()) {
                     p.setState(piece.getCurrentState());
+                    matrix[p.row][p.col] = playerId;
                 }
             }
         }
@@ -169,24 +190,21 @@ public class GamePane extends BorderPane {
     public void manageTurn() {
         if (!BoardHelper.canPlay(matrix)) {
             setScore();
-            DialogPane dialogPane = new DialogPane();
-            if (p1.getScore() > p2.getScore()) {
-                dialogPane.setContentText("Player 1 win");
-                Button button = new Button("OK");
-                dialogPane.getChildren().add(button);
-                gamePane.getChildren().add(dialogPane);
-
-            } else if (p1.getScore() < p2.getScore()) {
-                dialogPane.setContentText("Player 2 win");
-                Button button = new Button("OK");
-                dialogPane.getChildren().add(button);
-                gamePane.getChildren().add(dialogPane);
-            } else {
-                dialogPane.setContentText("Draw");
-                Button button = new Button("OK");
-                dialogPane.getChildren().add(button);
-                gamePane.getChildren().add(dialogPane);
-            }
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Game Over");
+                if (p1.getScore() > p2.getScore()) {
+                    alert.setHeaderText("Player 1 Wins!");
+                    alert.setContentText("Player 1 has won the game with a score of " + p1.getScore());
+                } else if (p1.getScore() < p2.getScore()) {
+                    alert.setHeaderText("Player 2 Wins!");
+                    alert.setContentText("Player 2 has won the game with a score of " + p2.getScore());
+                } else {
+                    alert.setHeaderText("Draw!");
+                    alert.setContentText("The game is a draw with both players scoring " + p1.getScore());
+                }
+                alert.showAndWait();
+            });
         } else {
             if (turn == 1) {
                 setScore();
@@ -201,6 +219,39 @@ public class GamePane extends BorderPane {
     public void setScore() {
         p1.setScore(BoardHelper.getScore(matrix, 1));
         p2.setScore(BoardHelper.getScore(matrix, 2));
+    }
+
+
+    public void highlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
+        for (Piece piece : changes) {
+            for (Piece p : pieces) {
+                if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol() && p.getCurrentState() != PieceState.EMPTY) {
+                    if (p.getCurrentState() == PieceState.EMPTY) {
+                        p.setHighlight(true);
+                        p.updateState(p.getCurrentState());
+                    }
+                    if (playerId == 1 && p.getCurrentState() == PieceState.WHITE) {
+                        p.setHighlight(true);
+                        p.updateState(p.getCurrentState());
+                    }
+                    if (playerId == 2 && p.getCurrentState() == PieceState.BLACK) {
+                        p.setHighlight(true);
+                        p.updateState(p.getCurrentState());
+                    }
+                }
+            }
+        }
+    }
+
+    public void unhighlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
+        for (Piece piece : changes) {
+            for (Piece p : pieces) {
+                if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol()) {
+                    p.setHighlight(false);
+                    p.updateState(p.getCurrentState());
+                }
+            }
+        }
     }
 
     public void showScore() {
@@ -256,18 +307,68 @@ public class GamePane extends BorderPane {
         pane.setSpacing(20);
         pane.setFillHeight(true);
         scorePane.setTop(pane);
-    }
-    public void showBtn(){
 
+    }
+
+    public void showBtn() {
+        Button reset = new Button("New Game");
+        reset.setOnAction(e -> {
+            resetBoard();
+        });
+        Button exit = new Button("Exit");
+        exit.setOnAction(e -> {
+            Platform.exit();
+        });
+        VBox pane = new VBox();
+        pane.getChildren().add(reset);
+        pane.getChildren().add(exit);
+        scorePane.setBottom(pane);
+    }
+
+    public void showMenu() {
+        Menu gameMenu = new Menu("Game");
+        MenuItem newItem = new MenuItem("New game");
+        newItem.setOnAction(e -> {
+            resetBoard();
+        });
+        gameMenu.getItems().add(newItem);
+        MenuItem exitItem = new MenuItem("Exit");
+        exitItem.setOnAction(e -> {
+            Platform.exit();
+        });
+        gameMenu.getItems().add(exitItem);
+
+        Menu helpMenu = new Menu("Help");
+        MenuItem aboutItem = new MenuItem("About");
+        aboutItem.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("About");
+            alert.setHeaderText("Flipping Game");
+            alert.setContentText("This is a simple Flipping game developed by Khanh Dew");
+            alert.showAndWait();
+        });
+        helpMenu.getItems().add(aboutItem);
+        MenuBar menuBar = new MenuBar();
+        menuBar.getMenus().add(gameMenu);
+        menuBar.getMenus().add(helpMenu);
+        this.setTop(menuBar);
     }
 
     public void calDimension() {
-        if (Board.MAX_ROW > Board.MAX_COL) {
-            WIDTH = (int) (1 / Board.SCALE * 100 * Math.min(Board.MAX_COL, Board.MAX_ROW) + 300);
-            HEIGHT = (int) (1 / Board.SCALE * 100 * Math.max(Board.MAX_COL, Board.MAX_ROW));
+        if (Board.getMaxRow() > Board.getMaxCol()) {
+            WIDTH = (int) (1 / Board.getSCALE() * 100 * Math.min(Board.getMaxCol(), Board.getMaxRow()) + 300);
+            HEIGHT = (int) (1 / Board.getSCALE() * 100 * Math.max(Board.getMaxCol(), Board.getMaxRow()) + 28);
         } else {
-            WIDTH = (int) (1 / Board.SCALE * 100 * Math.max(Board.MAX_COL, Board.MAX_ROW) + 300);
-            HEIGHT = (int) (1 / Board.SCALE * 100 * Math.min(Board.MAX_COL, Board.MAX_ROW));
+            WIDTH = (int) (1 / Board.getSCALE() * 100 * Math.max(Board.getMaxCol(), Board.getMaxRow()) + 300);
+            HEIGHT = (int) (1 / Board.getSCALE() * 100 * Math.min(Board.getMaxCol(), Board.getMaxRow()) + 28);
         }
+    }
+
+    public static int getWIDTH() {
+        return WIDTH;
+    }
+
+    public static int getHEIGHT() {
+        return HEIGHT;
     }
 }
