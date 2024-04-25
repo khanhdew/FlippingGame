@@ -322,7 +322,8 @@ public class GamePane extends BorderPane {
         VBox pane = new VBox();
         pane.getChildren().add(reset);
         pane.getChildren().add(exit);
-        scorePane.setBottom(pane);
+        pane.setAlignment(Pos.CENTER);
+        scorePane.setCenter(pane);
     }
 
     public void showMenu() {

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="300.0" style="-fx-spacing: 15;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.view.ButtonPaneController">
+   <children>
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
+         <children>
+            <Label text="Hàng" />
+            <TextField style="-fx-pref-width: 50;" />
+            <Label text="Cột" />
+            <TextField style="-fx-pref-width: 50;" />
+         </children>
+      </HBox>
+      <Label text="Người chơi 1" />
+      <ComboBox prefWidth="150.0" />
+      <Label text="Người chơi 2" />
+      <ComboBox prefWidth="150.0" />
+      <Button mnemonicParsing="false" text="Game mới" />
+      <Button mnemonicParsing="false" text="Thoát"/>
+   </children>
+</VBox>

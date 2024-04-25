@@ -2,19 +2,28 @@ package com.khanhdew.testjfx;
 
 import com.khanhdew.testjfx.view.GamePane;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 import java.awt.*;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class WelcomePaneController {
+public class WelcomePaneController implements Initializable {
     @FXML
     private TextField rowField;
 
     @FXML
     private TextField colField;
+
+    @FXML
+    private ImageView imageView;
+
+
 
     private Stage stage;
 
@@ -44,6 +53,12 @@ public class WelcomePaneController {
             alert.setContentText("Please enter a valid number");
             alert.showAndWait();
         }
+
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        imageView.setImage(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));
 
     }
 }
