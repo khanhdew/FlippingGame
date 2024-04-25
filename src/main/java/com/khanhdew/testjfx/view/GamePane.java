@@ -6,8 +6,10 @@ import com.khanhdew.testjfx.utils.Mouse;
 import javafx.animation.AnimationTimer;
 
 
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 
@@ -23,6 +25,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -62,7 +65,7 @@ public class GamePane extends BorderPane {
         gameScene = new Scene(gamePane, 800, 800);
 
 
-        addEventHandler(MouseEvent.MOUSE_CLICKED, mouse);
+        gamePane.addEventHandler(MouseEvent.MOUSE_CLICKED, mouse);
 
         //draw GamePane
         c1 = new Canvas(800, 800);
@@ -311,6 +314,9 @@ public class GamePane extends BorderPane {
     }
 
     public void showBtn() {
+        VBox pane = new VBox();
+        pane.setAlignment(Pos.TOP_CENTER);
+        pane.setSpacing(10);
         Button reset = new Button("New Game");
         reset.setOnAction(e -> {
             resetBoard();
@@ -319,10 +325,32 @@ public class GamePane extends BorderPane {
         exit.setOnAction(e -> {
             Platform.exit();
         });
-        VBox pane = new VBox();
-        pane.getChildren().add(reset);
-        pane.getChildren().add(exit);
-        pane.setAlignment(Pos.CENTER);
+
+
+        Label row = new Label("Row");
+        TextField rowField = new TextField();
+        rowField.setPrefWidth(50);
+        Label col = new Label("Col");
+        TextField colField = new TextField();
+        colField.setPrefWidth(50);
+
+        Label player1 = new Label("Player 1");
+        ComboBox player1Field = new ComboBox();
+        player1Field.getItems().addAll("Human", "EasyAI");
+        player1Field.setValue("Human");
+        Label player2 = new Label("Player 2");
+        ComboBox player2Field = new ComboBox();
+        player2Field.getItems().addAll("Human", "EasyAI");
+        player2Field.setValue("Human");
+
+        HBox gameSizeSettingPane = new HBox();
+        gameSizeSettingPane.setAlignment(Pos.CENTER);
+        gameSizeSettingPane.getChildren().addAll(row, rowField, col, colField);
+        gameSizeSettingPane.setSpacing(10);
+        gameSizeSettingPane.setStyle("-fx-end-margin: 50px");
+        gameSizeSettingPane.setPrefSize(pane.getWidth(),pane.getHeight());
+        pane.getChildren().addAll(gameSizeSettingPane,player1,player1Field,player2,player2Field,reset,exit);
+
         scorePane.setCenter(pane);
     }
 

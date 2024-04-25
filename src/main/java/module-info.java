@@ -10,4 +10,5 @@ module com.khanhdew.testjfx {
     opens com.khanhdew.testjfx to javafx.fxml;
     exports com.khanhdew.testjfx;
     exports com.khanhdew.testjfx.view;
+    opens com.khanhdew.testjfx.view to javafx.fxml;
 }

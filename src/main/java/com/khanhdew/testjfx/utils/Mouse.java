@@ -5,27 +5,27 @@ import com.khanhdew.testjfx.model.Board;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 
-public class Mouse  implements EventHandler<MouseEvent> {
-    public int x,y;
+public class Mouse implements EventHandler<MouseEvent> {
+    public int x, y;
     public boolean mouseClicked = false;
 
     @Override
     public void handle(MouseEvent mouseEvent) {
-        this.x = (int)mouseEvent.getX();
-        this.y = (int)mouseEvent.getY();
+        this.x = (int) mouseEvent.getX();
+        this.y = (int) mouseEvent.getY();
         mouseClicked = true;
-        System.out.println("X: " + x/ Board.SQUARE_SIZE + ", Y: " + y/Board.SQUARE_SIZE);
+        System.out.println("X: " + x / Board.getSquareSize() + ", Y: " + y / Board.getSquareSize());
     }
 
-    public int getCol(){
-        return x/ Board.SQUARE_SIZE;
+    public int getCol() {
+        return (x) / Board.getSquareSize();
     }
 
-    public int getRow(){
-        return y/ Board.SQUARE_SIZE;
+    public int getRow() {
+        return (y) / Board.getSquareSize();
     }
 
-    public void clear(){
+    public void clear() {
         x = 0;
         y = 0;
     }

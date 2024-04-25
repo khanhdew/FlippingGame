@@ -8,16 +8,16 @@
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
          <children>
             <Label text="Hàng" />
-            <TextField style="-fx-pref-width: 50;" />
+            <TextField style="-fx-pref-width: 50;" fx:id="row"/>
             <Label text="Cột" />
-            <TextField style="-fx-pref-width: 50;" />
+            <TextField style="-fx-pref-width: 50;" fx:id="col"/>
          </children>
       </HBox>
       <Label text="Người chơi 1" />
-      <ComboBox prefWidth="150.0" />
+      <ComboBox prefWidth="150.0" fx:id="player1"/>
       <Label text="Người chơi 2" />
-      <ComboBox prefWidth="150.0" />
-      <Button mnemonicParsing="false" text="Game mới" />
-      <Button mnemonicParsing="false" text="Thoát"/>
+      <ComboBox prefWidth="150.0" fx:id="player2" />
+      <Button mnemonicParsing="false" text="Game mới" fx:id="newGame" onAction="#startNewGame"/>
+      <Button mnemonicParsing="false" text="Thoát" fx:id="exit"/>
    </children>
 </VBox>
