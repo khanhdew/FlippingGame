@@ -1,20 +1,27 @@
 package com.khanhdew.testjfx.view;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.khanhdew.testjfx.model.*;
 import com.khanhdew.testjfx.utils.BoardHelper;
+import com.khanhdew.testjfx.utils.Language;
 import com.khanhdew.testjfx.utils.Mouse;
-import javafx.animation.AnimationTimer;
+import javafx.animation.*;
 
 
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 
 import javafx.application.Platform;
 import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -23,52 +30,84 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
+import java.util.Timer;
 
 
-public class GamePane extends BorderPane {
+public class MainPane extends BorderPane {
     public static int WIDTH;
     public static int HEIGHT;
 
     private BorderPane scorePane;
-    BorderPane gamePane;
+    private BorderPane gamePane;
 
     private Scene gameScene;
     private Scene scoreScene;
-    public Canvas c1;
+    private Canvas c1;
+    private Language gameLanguage = Language.ENGLISH;
+    private BiMap<String, String> languageMap;
 
-
-    Board board;
+    public Board board;
     Mouse mouse = new Mouse();
 
     Player p1;
     Player p2;
     int turn = 1;
+    private long lastMoveTime = 0;
 
+    public ArrayList<Piece> pieces = new ArrayList<>();
+    public int[][] matrix;
+    private Stack<Piece> historyMove = new Stack<>();
 
-    public static ArrayList<Piece> pieces = new ArrayList<>();
-    public static int[][] matrix;
+    public MainPane(String player1Type, String player2Type, Language gameLanguage) {
+        this.gameLanguage = gameLanguage;
+        languageMap = gameLanguage.getLanguage();
+        setPlayers(player1Type, player2Type);
+    }
 
-    public GamePane(int row, int col) {
+    private void setPlayers(String player1Type, String player2Type) {
+        switch (player1Type) {
+            case "human":
+                p1 = new HumanPlayer(1, languageMap.get("player1"));
+                break;
+            case "easyai":
+                break;
+        }
+        switch (player2Type) {
+            case "human":
+                p2 = new HumanPlayer(1, languageMap.get("player2"));
+                break;
+            case "easyai":
+                break;
+        }
+    }
+
+    public void setPlayersName(String player1Name, String player2Name) {
+        p1.setName(player1Name);
+        p2.setName(player2Name);
+    }
+
+    public void init(int row, int col) {
         board = new Board(row, col);
         matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
         calDimension();
-        p1 = new HumanPlayer(1, "Player 1");
-        p2 = new HumanPlayer(2, "Player 2");
+
         scorePane = new BorderPane();
-        scoreScene = new Scene(scorePane, 300, 800);
+        scoreScene = new Scene(scorePane, 300, HEIGHT);
         scoreScene.setFill(Color.BLACK);
         gamePane = new BorderPane();
-        gameScene = new Scene(gamePane, 800, 800);
+        gameScene = new Scene(gamePane, 800, HEIGHT);
 
 
         gamePane.addEventHandler(MouseEvent.MOUSE_CLICKED, mouse);
 
-        //draw GamePane
-        c1 = new Canvas(800, 800);
+        //draw MainPane
+        c1 = new Canvas(800, HEIGHT);
         Board.draw(c1.getGraphicsContext2D());
 
         setPieces();
@@ -77,14 +116,14 @@ public class GamePane extends BorderPane {
             gamePane.getChildren().add(piece);
         }
 
-        // Add gamePane and scorePane to different positions in GamePane
+        // Add mainPane and scorePane to different positions in MainPane
         this.setCenter(gamePane);
         this.setRight(scorePane);
 
         // Player timer
         showBtn();
         showMenu();
-
+        showScore();
 
         new AnimationTimer() {
             long lastTick = 0;
@@ -94,13 +133,12 @@ public class GamePane extends BorderPane {
                 if (lastTick == 0) {
                     lastTick = now;
                     update();
-                    showScore();
+
                     return;
                 }
                 if (now - lastTick > 1000000000 / 60) {
                     lastTick = now;
                     update();
-                    showScore();
                 }
             }
         }.start();
@@ -113,12 +151,14 @@ public class GamePane extends BorderPane {
             for (int j = 0; j < BOARD_COL; j++) {
                 Piece piece = new Piece(i, j, PieceState.EMPTY);
 //                piece.setOnMouseEntered(e -> {
-//                    System.out.println("Entered" + piece);
+//                    //TODO: Highlight surrounding pieces
 //                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                    System.out.println("mouse entered" +piece);
 //                });
 //                piece.setOnMouseExited(e -> {
-//                    System.out.println("Exited" + piece);
+//                    //TODO: Unhighlight surrounding pieces
 //                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                    System.out.println("mouse exited" +piece);
 //                });
                 pieces.add(piece);
             }
@@ -146,15 +186,20 @@ public class GamePane extends BorderPane {
     }
 
     public void update() {
+        long now = System.currentTimeMillis();
         for (Piece piece : pieces) {
             piece.updateState(piece.getCurrentState());
         }
-        if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
-            if (move(mouse.getCol(), mouse.getRow(), turn))
-                manageTurn();
-            mouse.mouseClicked = false;
+        if (now - lastMoveTime > 600) {
+            if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
+                if (move(mouse.getCol(), mouse.getRow(), turn)) {
+                    manageTurn();
+                    showScore();
+                }
+                mouse.mouseClicked = false;
+            }
+            lastMoveTime = now;
         }
-        showScore();
     }
 
     private int getTurn() {
@@ -165,10 +210,15 @@ public class GamePane extends BorderPane {
         for (Piece piece : pieces) {
             if (piece.getCol() == col && piece.getRow() == row) {
                 if (piece.getCurrentState() == PieceState.EMPTY) {
+                    FadeTransition ft = new FadeTransition(Duration.millis(400), piece);
+                    ft.setFromValue(1.0);
+                    ft.setToValue(0.5);
+                    ft.setCycleCount(2);
+                    ft.setAutoReverse(true);
+                    ft.play();
                     piece.setState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
                     changePieceState(BoardHelper.getPieceChangeForEachMove(matrix, playerId, row, col), playerId);
                     BoardHelper.toMatrix(matrix, piece);
-                    //BoardHelper.printMatrix(matrix);
                     return true;
                 }
             }
@@ -183,8 +233,26 @@ public class GamePane extends BorderPane {
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getCol() == piece.getCol() && p.getRow() == piece.getRow()) {
-                    p.setState(piece.getCurrentState());
+                    // Tạo hiệu ứng lật
+                    ScaleTransition st1 = new ScaleTransition(Duration.millis(300), p);
+                    RotateTransition rt = new RotateTransition(Duration.millis(800), p);
+                    rt.setByAngle(360);
+                    rt.setCycleCount(1);
+                    rt.play();
+                    st1.setByX(-0.2);
+                    st1.setByY(-1);
+                    st1.setCycleCount(1);
                     matrix[p.row][p.col] = playerId;
+                    // Đặt hành động khi hiệu ứng hoàn tất
+                    st1.setOnFinished(e -> {
+                        p.setState(piece.getCurrentState());
+                        ScaleTransition st2 = new ScaleTransition(Duration.millis(300), p);
+                        st2.setByX(0.2);
+                        st2.setByY(1);
+                        st2.setCycleCount(1);
+                        st2.play();
+                    });
+                    st1.play();
                 }
             }
         }
@@ -195,16 +263,16 @@ public class GamePane extends BorderPane {
             setScore();
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Game Over");
+                alert.setTitle(languageMap.get("gameOver"));
                 if (p1.getScore() > p2.getScore()) {
-                    alert.setHeaderText("Player 1 Wins!");
-                    alert.setContentText("Player 1 has won the game with a score of " + p1.getScore());
+                    alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
+                    alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
                 } else if (p1.getScore() < p2.getScore()) {
-                    alert.setHeaderText("Player 2 Wins!");
-                    alert.setContentText("Player 2 has won the game with a score of " + p2.getScore());
+                    alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
+                    alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
                 } else {
-                    alert.setHeaderText("Draw!");
-                    alert.setContentText("The game is a draw with both players scoring " + p1.getScore());
+                    alert.setHeaderText(languageMap.get("draw"));
+                    alert.setContentText(languageMap.get("drawContext") + p1.getScore());
                 }
                 alert.showAndWait();
             });
@@ -226,21 +294,19 @@ public class GamePane extends BorderPane {
 
 
     public void highlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
+        //infinte loop
+        FadeTransition ft = new FadeTransition(Duration.millis(100));
+        ft.setFromValue(1.0);
+        ft.setToValue(0.5);
+        ft.setCycleCount(2);
+        ft.setAutoReverse(true);
+
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol() && p.getCurrentState() != PieceState.EMPTY) {
-                    if (p.getCurrentState() == PieceState.EMPTY) {
-                        p.setHighlight(true);
-                        p.updateState(p.getCurrentState());
-                    }
-                    if (playerId == 1 && p.getCurrentState() == PieceState.WHITE) {
-                        p.setHighlight(true);
-                        p.updateState(p.getCurrentState());
-                    }
-                    if (playerId == 2 && p.getCurrentState() == PieceState.BLACK) {
-                        p.setHighlight(true);
-                        p.updateState(p.getCurrentState());
-                    }
+                    p.updateState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
+                    ft.setNode(p);
+                    ft.play();
                 }
             }
         }
@@ -250,14 +316,25 @@ public class GamePane extends BorderPane {
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol()) {
-                    p.setHighlight(false);
-                    p.updateState(p.getCurrentState());
+                    p.updateState(p.getLastState());
                 }
             }
         }
     }
 
     public void showScore() {
+        //Create scale and fade animation
+        ScaleTransition st = new ScaleTransition(Duration.millis(800));
+        st.setByX(0.1);
+        st.setByY(0.1);
+        st.setCycleCount(Animation.INDEFINITE);
+        st.setAutoReverse(true);
+        FadeTransition ft = new FadeTransition(Duration.millis(800));
+        ft.setFromValue(1.0);
+        ft.setToValue(0.5);
+        ft.setCycleCount(Animation.INDEFINITE);
+        ft.setAutoReverse(true);
+
         HBox pane = new HBox(3);
 
         //Circle
@@ -277,6 +354,17 @@ public class GamePane extends BorderPane {
         c2.setStroke(Color.web("#bababa"));
         c2.setStrokeWidth(5);
         c2.setStrokeType(StrokeType.INSIDE);
+        if (turn == 1) {
+            st.setNode(c1);
+            ft.setNode(c1);
+            st.play();
+            ft.play();
+        } else {
+            st.setNode(c2);
+            ft.setNode(c2);
+            st.play();
+            ft.play();
+        }
 
         Text verSus = new Text("VS");
         verSus.setStyle("-fx-font: 24 arial;" +
@@ -317,39 +405,75 @@ public class GamePane extends BorderPane {
         VBox pane = new VBox();
         pane.setAlignment(Pos.TOP_CENTER);
         pane.setSpacing(10);
-        Button reset = new Button("New Game");
+        Button reset = new Button(languageMap.get("reset"));
         reset.setOnAction(e -> {
             resetBoard();
         });
-        Button exit = new Button("Exit");
+        Button exit = new Button(languageMap.get("exit"));
         exit.setOnAction(e -> {
             Platform.exit();
         });
 
 
-        Label row = new Label("Row");
+        Label row = new Label(languageMap.get("row"));
         TextField rowField = new TextField();
         rowField.setPrefWidth(50);
-        Label col = new Label("Col");
+        Label col = new Label(languageMap.get("col"));
         TextField colField = new TextField();
         colField.setPrefWidth(50);
 
-        Label player1 = new Label("Player 1");
+        Button newGame = new Button(languageMap.get("newgame"));
+
+
+        Label player1 = new Label(languageMap.get("player1"));
         ComboBox player1Field = new ComboBox();
-        player1Field.getItems().addAll("Human", "EasyAI");
-        player1Field.setValue("Human");
-        Label player2 = new Label("Player 2");
+        player1Field.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player1Field.setValue(languageMap.get("human"));
+        Label player2 = new Label(languageMap.get("player2"));
         ComboBox player2Field = new ComboBox();
-        player2Field.getItems().addAll("Human", "EasyAI");
-        player2Field.setValue("Human");
+        player2Field.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player2Field.setValue(languageMap.get("human"));
+        newGame.setOnAction(e -> {
+            try {
+                int rows = Integer.parseInt(rowField.getText());
+                int cols = Integer.parseInt(colField.getText());
+
+                String player1Type = player1Field.getValue().toString();
+                String player2Type = player2Field.getValue().toString();
+                newGame(rows, cols, player1Type, player2Type);
+                //Set player
+                setPlayers(player1Type, player2Type);
+
+                // Vẽ lại game
+                gamePane.getChildren().clear();
+                gamePane.getChildren().add(c1);
+                pieces.clear();
+                setPieces();
+                for (Piece piece : pieces) {
+                    piece.setPieceSize(Board.getSquareSize());
+                    gamePane.getChildren().add(piece);
+                }
+                p1.setScore(0);
+                p2.setScore(0);
+                turn = 1;
+                Board.draw(c1.getGraphicsContext2D());
+
+            } catch (NumberFormatException ex) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle(languageMap.get("error"));
+                alert.setHeaderText(languageMap.get("invalidInput"));
+                alert.setContentText(languageMap.get("adviceInput"));
+                alert.showAndWait();
+            }
+        });
 
         HBox gameSizeSettingPane = new HBox();
         gameSizeSettingPane.setAlignment(Pos.CENTER);
         gameSizeSettingPane.getChildren().addAll(row, rowField, col, colField);
         gameSizeSettingPane.setSpacing(10);
         gameSizeSettingPane.setStyle("-fx-end-margin: 50px");
-        gameSizeSettingPane.setPrefSize(pane.getWidth(),pane.getHeight());
-        pane.getChildren().addAll(gameSizeSettingPane,player1,player1Field,player2,player2Field,reset,exit);
+        gameSizeSettingPane.setPrefSize(pane.getWidth(), pane.getHeight());
+        pane.getChildren().addAll(reset, gameSizeSettingPane, player1, player1Field, player2, player2Field, newGame, exit);
 
         scorePane.setCenter(pane);
     }
@@ -400,4 +524,42 @@ public class GamePane extends BorderPane {
     public static int getHEIGHT() {
         return HEIGHT;
     }
+
+
+    public void newGame(int row, int col, String player1Type, String player2Type) {
+        // Tạo board mới với số hàng và cột đã chọn
+        calDimension();
+        setPrefHeight(HEIGHT);
+        setPrefWidth(WIDTH);
+//        init(row, col);
+        board = new Board(row, col);
+        matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
+
+        // Tạo người chơi mới dựa trên loại người chơi đã chọn
+        p1 = new HumanPlayer(1, "Player 1");
+        p2 = new HumanPlayer(2, "Player 2");
+
+        // Đặt lại điểm số
+        p1.setScore(0);
+        p2.setScore(0);
+
+        // Đặt lại lượt chơi
+        turn = 1;
+
+        // Vẽ lại bảng
+        c1 = new Canvas(800, 800);
+        Board.draw(c1.getGraphicsContext2D());
+
+    }
+
+    public Language getGameLanguage() {
+        return gameLanguage;
+    }
+
+    public void setGameLanguage(Language gameLanguage) {
+        this.gameLanguage = gameLanguage;
+        languageMap.clear();
+        languageMap = gameLanguage.getLanguage();
+    }
+
 }

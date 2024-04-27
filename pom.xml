@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.khanhdew</groupId>
-    <artifactId>TestJFX</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>TestJFX</name>
+    <artifactId>FlippingGame</artifactId>
+    <version>1.0</version>
+    <name>FlippingGame</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -36,17 +36,6 @@
             <version>0.4.0</version>
         </dependency>
         <dependency>
-            <groupId>com.github.almasb</groupId>
-            <artifactId>fxgl</artifactId>
-            <version>11.17</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.openjfx</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
@@ -58,6 +47,15 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.collections/google-collections -->
+        <dependency>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+            <version>1.0-rc2</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

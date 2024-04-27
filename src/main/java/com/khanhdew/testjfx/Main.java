@@ -24,7 +24,7 @@ public class Main extends Application {
         controller.setStage(stage);
 
 
-        Scene scene = new Scene(welcomePane, 500, 500);
+        Scene scene = new Scene(welcomePane, 800, 500);
         stage.setScene(scene);
         stage.setResizable(false);
         stage.getIcons().add(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));

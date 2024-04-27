@@ -1,20 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: green;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.WelcomePaneController">
+<VBox alignment="CENTER" prefHeight="400.0" prefWidth="800.0" style="-fx-spacing: 10; -fx-background-color: green;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.WelcomePaneController">
    <children>
-      <ImageView fx:id="imageView" fitHeight="150.0" fitWidth="200.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
-      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
+      <Pane nodeOrientation="RIGHT_TO_LEFT" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="NEVER">
          <children>
-            <Label text="Row" />
-            <TextField fx:id="rowField" />
-            <Label text="Column" />
-            <TextField fx:id="colField" />
+            <ComboBox fx:id="languageOption" layoutY="8.0" prefWidth="150.0">
+               <cursor>
+                  <Cursor fx:constant="DEFAULT" />
+               </cursor></ComboBox>
          </children>
-      </HBox>
-      <Button mnemonicParsing="false" onAction="#startGame" text="Start Game" />
+      </Pane>
+      <ImageView fx:id="imageView" fitHeight="150.0" fitWidth="200.0" nodeOrientation="INHERIT" pickOnBounds="true" preserveRatio="true" />
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" style="-fx-spacing: 10;">
+         <children>
+            <GridPane alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" prefHeight="60.0" prefWidth="600.0" VBox.vgrow="ALWAYS">
+              <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="CENTER" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints minWidth="10.0" prefWidth="100.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="15.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="24.0" vgrow="SOMETIMES" />
+                <RowConstraints maxHeight="60.0" minHeight="0.0" prefHeight="31.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Label fx:id="rowLabel" graphicTextGap="2.0" nodeOrientation="LEFT_TO_RIGHT" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                  <Label fx:id="player1Label" alignment="TOP_LEFT" nodeOrientation="LEFT_TO_RIGHT" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                  <TextField fx:id="rowField" alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" text="6" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                  <TextField fx:id="colField" alignment="CENTER" nodeOrientation="LEFT_TO_RIGHT" text="6" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                  <Label fx:id="player2Label" nodeOrientation="LEFT_TO_RIGHT" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+                     <GridPane.margin>
+                        <Insets left="10.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <Label fx:id="colLabel" nodeOrientation="LEFT_TO_RIGHT" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                     <GridPane.margin>
+                        <Insets left="10.0" />
+                     </GridPane.margin>
+                  </Label>
+                  <ComboBox fx:id="player1" nodeOrientation="LEFT_TO_RIGHT" prefHeight="0.0" prefWidth="149.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                  <ComboBox fx:id="player2" nodeOrientation="LEFT_TO_RIGHT" prefWidth="150.0" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" />
+                  <Label fx:id="player1NameLabel" nodeOrientation="LEFT_TO_RIGHT" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                  <Label fx:id="player2NameLabel" nodeOrientation="LEFT_TO_RIGHT" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                  <TextField fx:id="player1Name" nodeOrientation="LEFT_TO_RIGHT" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+                  <TextField fx:id="player2Name" nodeOrientation="LEFT_TO_RIGHT" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
+               </children>
+            </GridPane>
+            <Button fx:id="startButton" mnemonicParsing="false" onAction="#startGame" />
+         </children>
+      </VBox>
    </children>
 </VBox>

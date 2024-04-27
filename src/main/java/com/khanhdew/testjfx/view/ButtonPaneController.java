@@ -12,10 +12,10 @@ public class ButtonPaneController {
     public ComboBox player1;
     @FXML
     public ComboBox player2;
-    GamePane gamePane;
+    MainPane mainPane;
 
-    public void setGamePane(GamePane gamePane) {
-        this.gamePane = gamePane;
+    public void setGamePane(MainPane mainPane) {
+        this.mainPane = mainPane;
     }
 
     @FXML

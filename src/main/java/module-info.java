@@ -3,8 +3,8 @@ module com.khanhdew.testjfx {
     requires javafx.fxml;
 
     requires org.kordamp.bootstrapfx.core;
-    requires com.almasb.fxgl.all;
     requires java.desktop;
+    requires google.collections;
 
 
     opens com.khanhdew.testjfx to javafx.fxml;

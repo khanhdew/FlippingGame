@@ -19,12 +19,11 @@ public class Piece extends Circle {
     private PieceState lastState, currentState;
     private final int x;
     private final int y;
-    public static final int PIECE_SIZE = Board.SQUARE_SIZE - 15;
-    public static final double SCALE = PIECE_SIZE / 100.0;
+    public static int PIECE_SIZE = Board.SQUARE_SIZE - 15;
+    public static double SCALE = PIECE_SIZE / 100.0;
     public boolean highlight;
 
     private final RotateTransition rotateTransition = new RotateTransition();
-    ;
 
     public Piece(int row, int col, PieceState currentState) {
         this.row = row;
@@ -44,7 +43,7 @@ public class Piece extends Circle {
             setRadius((double) PIECE_SIZE / 2);
             setFill(Color.TRANSPARENT);
             setStroke(Color.web("#7DDA58"));
-            setStrokeWidth(5*SCALE);
+            setStrokeWidth(5 * SCALE);
             getStrokeDashArray().addAll(25 * SCALE, 19 * SCALE);
             rotate();
         } else if (pieceState == PieceState.BLACK) {
@@ -56,7 +55,7 @@ public class Piece extends Circle {
             setRadius((double) PIECE_SIZE / 2);
             setFill(gradient1);
             setStroke(Color.web("#000"));
-            setStrokeWidth(5*SCALE);
+            setStrokeWidth(5 * SCALE);
             setStrokeType(StrokeType.INSIDE);
             getStrokeDashArray().clear();
 
@@ -73,13 +72,13 @@ public class Piece extends Circle {
             setStrokeType(StrokeType.INSIDE);
             getStrokeDashArray().clear();
         }
-//        else {
-//            setCenterX(x);
-//            setCenterY(y);
-//            setRadius((double) PIECE_SIZE / 2);
-//            setStyle("-fx-fill: red;" +
-//                    "-fx-stroke-dash-array: 5 5;");
-//        }
+        else {
+            setCenterX(x);
+            setCenterY(y);
+            setRadius((double) PIECE_SIZE / 2);
+            setFill(Color.TRANSPARENT);
+        }
+
 
     }
 
@@ -179,4 +178,11 @@ public class Piece extends Circle {
                 ", currentState= " + currentState +
                 '}';
     }
+
+    public void setPieceSize(int newSize) {
+        PIECE_SIZE = newSize - 15;
+        SCALE = PIECE_SIZE / 100.0;
+        initCir(currentState);
+    }
+
 }
