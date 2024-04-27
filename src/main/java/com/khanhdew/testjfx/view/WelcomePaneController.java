@@ -1,8 +1,7 @@
-package com.khanhdew.testjfx;
+package com.khanhdew.testjfx.view;
 
 import com.google.common.collect.BiMap;
 import com.khanhdew.testjfx.utils.Language;
-import com.khanhdew.testjfx.view.MainPane;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;

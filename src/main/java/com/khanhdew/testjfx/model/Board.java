@@ -30,7 +30,7 @@ public class Board {
 //                if(row==0||row==MAX_ROW-1||col==0||col==MAX_COL-1) gc.setFill(Color.web("#663F25FF"));
                 gc.fillRect(    col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
 //                gc.setFill(Color.BLACK);
-//                gc.fillText(x+"", col * SQUARE_SIZE + 10, row * SQUARE_SIZE + 10);
+//                gc.fillText(row+" "+col, col * SQUARE_SIZE + 10, row * SQUARE_SIZE + 10);
                 x++;
             }
         }

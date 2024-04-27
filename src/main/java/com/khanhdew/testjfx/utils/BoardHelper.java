@@ -27,6 +27,7 @@ public class BoardHelper {
     }
 
     public static void printMatrix(int[][] matrix) {
+        System.out.println("----------------------");
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix.length; j++) {
                 System.out.printf("%2d ", matrix[i][j]);
@@ -77,26 +78,33 @@ public class BoardHelper {
         ArrayList<Piece> changes = new ArrayList<>();
         // row = 0
         if (row == 0) {
-            if (col == 0)
-                for (int i = row; i <= row + 1; i++) {
-                    for (int j = col; j <= col + 1; j++) {
-                        if (board[i][j] == opponent) {
-                            changes.add(new Piece(i, j, playerState));
-                        }
-                    }
+            if (col == 0) {
+                if (board[row][col + 1] == opponent) {
+                    changes.add(new Piece(row, col + 1, playerState));
                 }
-            else if (col == BOARD_COL - 1)
-                for (int i = row; i <= row + 1; i++) {
-                    for (int j = col - 1; j <= col; j++) {
-                        if (board[i][j] == opponent) {
-                            changes.add(new Piece(i, j, playerState));
-                        }
-                    }
+                if (board[row + 1][col] == opponent) {
+                    changes.add(new Piece(row + 1, col, playerState));
                 }
-            else for (int i = row;
-                      i <= row + 1;
-                      i++) {
+                if (board[row + 1][col + 1] == opponent) {
+                    changes.add(new Piece(row + 1, col + 1, playerState));
+                }
+            }
+            else if (col == BOARD_COL - 1) {
+                if (board[row + 1][col] == opponent) {
+                    changes.add(new Piece(row + 1, col, playerState));
+                }
+                if (board[row + 1][col - 1] == opponent) {
+                    changes.add(new Piece(row + 1, col - 1, playerState));
+                }
+                if (board[row][col - 1] == opponent) {
+                    changes.add(new Piece(row, col - 1, playerState));
+                }
+            }
+            else
+                for (int i = row; i <= row + 1; i++) {
                     for (int j = col - 1; j <= col + 1; j++) {
+                        if(i == row && j == col)
+                            continue;
                         if (board[i][j] == opponent) {
                             changes.add(new Piece(i, j, playerState));
                         }
@@ -113,17 +121,17 @@ public class BoardHelper {
                 if (board[row - 1][col] == opponent) {
                     changes.add(new Piece(row - 1, col, playerState));
                 }
-                if (board[row - 1][col+1] == opponent) {
+                if (board[row - 1][col + 1] == opponent) {
                     changes.add(new Piece(row - 1, col + 1, playerState));
                 }
             } else if (col == BOARD_COL - 1) {
-                if (board[row-1][col] == opponent) {
-                    changes.add(new Piece(row-1, col, playerState));
+                if (board[row - 1][col] == opponent) {
+                    changes.add(new Piece(row - 1, col, playerState));
                 }
-                if (board[row - 1][col-1] == opponent) {
-                    changes.add(new Piece(row - 1, col-1, playerState));
+                if (board[row - 1][col - 1] == opponent) {
+                    changes.add(new Piece(row - 1, col - 1, playerState));
                 }
-                if (board[row][col-1] == opponent) {
+                if (board[row][col - 1] == opponent) {
                     changes.add(new Piece(row, col - 1, playerState));
                 }
             } else {
@@ -133,7 +141,7 @@ public class BoardHelper {
                 if (board[row - 1][col] == opponent) {
                     changes.add(new Piece(row - 1, col, playerState));
                 }
-                if (board[row - 1][col+1] == opponent) {
+                if (board[row - 1][col + 1] == opponent) {
                     changes.add(new Piece(row - 1, col + 1, playerState));
 
                 }
@@ -141,8 +149,8 @@ public class BoardHelper {
                     changes.add(new Piece(row, col - 1, playerState));
 
                 }
-                if (board[row - 1][col-1] == opponent) {
-                    changes.add(new Piece(row - 1, col-1, playerState));
+                if (board[row - 1][col - 1] == opponent) {
+                    changes.add(new Piece(row - 1, col - 1, playerState));
 
                 }
             }
@@ -153,8 +161,9 @@ public class BoardHelper {
             for (int i = row - 1; i <= row + 1; i++) {
                 for (int j = col; j <= col + 1; j++) {
                     if (board[i][j] == opponent) {
+                        if(i == row && j == col)
+                            continue;
                         changes.add(new Piece(i, j, playerState));
-                        board[i][j] = playerId;
                     }
                 }
             }
@@ -165,8 +174,9 @@ public class BoardHelper {
             for (int i = row - 1; i <= row + 1; i++) {
                 for (int j = col - 1; j <= col; j++) {
                     if (board[i][j] == opponent) {
+                        if(i == row && j == col)
+                            continue;
                         changes.add(new Piece(i, j, playerState));
-                        board[i][j] = playerId;
                     }
                 }
             }
@@ -175,20 +185,24 @@ public class BoardHelper {
         for (int i = row - 1; i <= row + 1; i++) {
             for (int j = col - 1; j <= col + 1; j++) {
                 if (board[i][j] == opponent) {
+                    if(i == row && j == col)
+                            continue;
                     changes.add(new Piece(i, j, playerState));
-                    board[i][j] = playerId;
                 }
             }
         }
         return changes;
     }
 
-    public static int getScore(int[][] board, int playerId) {
-        int score = 0;
+    public static int[] getScore(int[][] board) {
+        int[] score = new int[2];
         for (int i = 0; i < board.length; i++)
-            for (int j = 0; j < board[0].length; j++)
-                if (board[i][j] == playerId)
-                    score++;
+            for (int j = 0; j < board[0].length; j++) {
+                if (board[i][j] == 1)
+                    score[0]++;
+                else if (board[i][j] == 2)
+                    score[1]++;
+            }
         return score;
     }
 }

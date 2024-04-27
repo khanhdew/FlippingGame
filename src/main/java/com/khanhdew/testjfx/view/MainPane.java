@@ -1,7 +1,6 @@
 package com.khanhdew.testjfx.view;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.khanhdew.testjfx.model.*;
 import com.khanhdew.testjfx.utils.BoardHelper;
 import com.khanhdew.testjfx.utils.Language;
@@ -9,6 +8,7 @@ import com.khanhdew.testjfx.utils.Mouse;
 import javafx.animation.*;
 
 
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,12 +16,9 @@ import javafx.scene.canvas.Canvas;
 
 import javafx.application.Platform;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -31,12 +28,13 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import org.kordamp.bootstrapfx.BootstrapFX;
 
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Stack;
-import java.util.Timer;
 
 
 public class MainPane extends BorderPane {
@@ -100,6 +98,7 @@ public class MainPane extends BorderPane {
         scorePane = new BorderPane();
         scoreScene = new Scene(scorePane, 300, HEIGHT);
         scoreScene.setFill(Color.BLACK);
+        scorePane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
         gamePane = new BorderPane();
         gameScene = new Scene(gamePane, 800, HEIGHT);
 
@@ -150,15 +149,17 @@ public class MainPane extends BorderPane {
         for (int i = 0; i < BOARD_ROW; i++) {
             for (int j = 0; j < BOARD_COL; j++) {
                 Piece piece = new Piece(i, j, PieceState.EMPTY);
-//                piece.setOnMouseEntered(e -> {
+//                piece.setOnMouseClicked(e -> {
 //                    //TODO: Highlight surrounding pieces
-//                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
-//                    System.out.println("mouse entered" +piece);
+////                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+////                    if(piece.getCurrentState()!=PieceState.EMPTY)
+//                    System.out.println("mouse entered" + piece);
 //                });
 //                piece.setOnMouseExited(e -> {
 //                    //TODO: Unhighlight surrounding pieces
-//                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
-//                    System.out.println("mouse exited" +piece);
+////                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                    if(piece.getCurrentState()!=PieceState.EMPTY)
+//                        System.out.println("mouse exited" +piece);
 //                });
                 pieces.add(piece);
             }
@@ -176,6 +177,7 @@ public class MainPane extends BorderPane {
         gamePane.getChildren().clear();
         gamePane.getChildren().add(c1);
         pieces.clear();
+        historyMove.clear();
         setPieces();
         for (Piece piece : pieces) {
             gamePane.getChildren().add(piece);
@@ -188,7 +190,7 @@ public class MainPane extends BorderPane {
     public void update() {
         long now = System.currentTimeMillis();
         for (Piece piece : pieces) {
-            piece.updateState(piece.getCurrentState());
+            piece.initCir(piece.getCurrentState());
         }
         if (now - lastMoveTime > 600) {
             if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
@@ -219,6 +221,7 @@ public class MainPane extends BorderPane {
                     piece.setState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
                     changePieceState(BoardHelper.getPieceChangeForEachMove(matrix, playerId, row, col), playerId);
                     BoardHelper.toMatrix(matrix, piece);
+                    historyMove.push(piece);
                     return true;
                 }
             }
@@ -288,8 +291,9 @@ public class MainPane extends BorderPane {
     }
 
     public void setScore() {
-        p1.setScore(BoardHelper.getScore(matrix, 1));
-        p2.setScore(BoardHelper.getScore(matrix, 2));
+        int[] score = BoardHelper.getScore(matrix);
+        p1.setScore(score[0]);
+        p2.setScore(score[1]);
     }
 
 
@@ -396,85 +400,23 @@ public class MainPane extends BorderPane {
         pane.getChildren().addAll(s1, verSus, s2);
         pane.setPadding(new Insets(-100, 10, 10, 10));
         pane.setSpacing(20);
-        pane.setFillHeight(true);
+        pane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
         scorePane.setTop(pane);
 
     }
 
     public void showBtn() {
-        VBox pane = new VBox();
-        pane.setAlignment(Pos.TOP_CENTER);
-        pane.setSpacing(10);
-        Button reset = new Button(languageMap.get("reset"));
-        reset.setOnAction(e -> {
-            resetBoard();
-        });
-        Button exit = new Button(languageMap.get("exit"));
-        exit.setOnAction(e -> {
-            Platform.exit();
-        });
-
-
-        Label row = new Label(languageMap.get("row"));
-        TextField rowField = new TextField();
-        rowField.setPrefWidth(50);
-        Label col = new Label(languageMap.get("col"));
-        TextField colField = new TextField();
-        colField.setPrefWidth(50);
-
-        Button newGame = new Button(languageMap.get("newgame"));
-
-
-        Label player1 = new Label(languageMap.get("player1"));
-        ComboBox player1Field = new ComboBox();
-        player1Field.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
-        player1Field.setValue(languageMap.get("human"));
-        Label player2 = new Label(languageMap.get("player2"));
-        ComboBox player2Field = new ComboBox();
-        player2Field.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
-        player2Field.setValue(languageMap.get("human"));
-        newGame.setOnAction(e -> {
-            try {
-                int rows = Integer.parseInt(rowField.getText());
-                int cols = Integer.parseInt(colField.getText());
-
-                String player1Type = player1Field.getValue().toString();
-                String player2Type = player2Field.getValue().toString();
-                newGame(rows, cols, player1Type, player2Type);
-                //Set player
-                setPlayers(player1Type, player2Type);
-
-                // Vẽ lại game
-                gamePane.getChildren().clear();
-                gamePane.getChildren().add(c1);
-                pieces.clear();
-                setPieces();
-                for (Piece piece : pieces) {
-                    piece.setPieceSize(Board.getSquareSize());
-                    gamePane.getChildren().add(piece);
-                }
-                p1.setScore(0);
-                p2.setScore(0);
-                turn = 1;
-                Board.draw(c1.getGraphicsContext2D());
-
-            } catch (NumberFormatException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle(languageMap.get("error"));
-                alert.setHeaderText(languageMap.get("invalidInput"));
-                alert.setContentText(languageMap.get("adviceInput"));
-                alert.showAndWait();
-            }
-        });
-
-        HBox gameSizeSettingPane = new HBox();
-        gameSizeSettingPane.setAlignment(Pos.CENTER);
-        gameSizeSettingPane.getChildren().addAll(row, rowField, col, colField);
-        gameSizeSettingPane.setSpacing(10);
-        gameSizeSettingPane.setStyle("-fx-end-margin: 50px");
-        gameSizeSettingPane.setPrefSize(pane.getWidth(), pane.getHeight());
-        pane.getChildren().addAll(reset, gameSizeSettingPane, player1, player1Field, player2, player2Field, newGame, exit);
-
+        FXMLLoader loader = null;
+        VBox pane;
+        try {
+            loader = new FXMLLoader(new URL("file:src/main/resources/com/khanhdew/testjfx/button-Pane.fxml"));
+            pane = loader.load();
+            ButtonPaneController controller = loader.getController();
+            controller.setGamePane(this);
+            pane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         scorePane.setCenter(pane);
     }
 
@@ -525,6 +467,32 @@ public class MainPane extends BorderPane {
         return HEIGHT;
     }
 
+    public void unDo() {
+        if (!historyMove.isEmpty()) {
+            Piece piece = historyMove.pop();
+            piece.setState(PieceState.EMPTY);
+            ArrayList<Piece> changes = BoardHelper.getPieceChangeForEachMove(matrix, turn, piece.getRow(), piece.getCol());
+            unDoChanges(changes);
+            matrix[piece.getRow()][piece.getCol()] = 0;
+            BoardHelper.toMatrix(matrix, piece);
+            turn = turn == 1 ? 2 : 1;
+            setScore();
+            showScore();
+        }
+
+    }
+
+    public void unDoChanges(ArrayList<Piece> changes) {
+        for (Piece piece : changes) {
+            for (Piece p : pieces) {
+                if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol()) {
+                    p.setState(piece.getLastState());
+                }
+
+            }
+        }
+        BoardHelper.toMatrix(matrix, changes);
+    }
 
     public void newGame(int row, int col, String player1Type, String player2Type) {
         // Tạo board mới với số hàng và cột đã chọn
@@ -548,8 +516,19 @@ public class MainPane extends BorderPane {
 
         // Vẽ lại bảng
         c1 = new Canvas(800, 800);
-        Board.draw(c1.getGraphicsContext2D());
+        //Set player
+        setPlayers(player1Type, player2Type);
 
+        // Vẽ lại game
+        gamePane.getChildren().clear();
+        gamePane.getChildren().add(c1);
+        pieces.clear();
+        setPieces();
+        for (Piece piece : pieces) {
+            piece.setPieceSize(Board.getSquareSize());
+            gamePane.getChildren().add(piece);
+        }
+        Board.draw(c1.getGraphicsContext2D());
     }
 
     public Language getGameLanguage() {
@@ -562,4 +541,11 @@ public class MainPane extends BorderPane {
         languageMap = gameLanguage.getLanguage();
     }
 
+    public BiMap<String, String> getLanguageMap() {
+        return languageMap;
+    }
+
+    public void setLanguageMap(BiMap<String, String> languageMap) {
+        this.languageMap = languageMap;
+    }
 }

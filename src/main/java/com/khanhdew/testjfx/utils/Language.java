@@ -47,6 +47,8 @@ public enum Language {
         english.put("player1Name", "Player 1 Name");
         english.put("player2Name", "Player 2 Name");
         english.put("reset", "Reset");
+        english.put("setting", "Settings");
+        english.put("undo", "Undo");
     }
 
     public void initVietnamese() {
@@ -74,5 +76,7 @@ public enum Language {
         vietnamese.put("player1Name", "Tên người 1");
         vietnamese.put("player2Name", "Tên người 2");
         vietnamese.put("reset", "Làm mới");
+        vietnamese.put("setting", "Cài đặt");
+        vietnamese.put("undo", "Hoàn tác");
     }
 }

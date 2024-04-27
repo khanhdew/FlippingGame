@@ -1,6 +1,7 @@
 package com.khanhdew.testjfx;
 
 
+import com.khanhdew.testjfx.view.WelcomePaneController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -25,6 +26,7 @@ public class Main extends Application {
 
 
         Scene scene = new Scene(welcomePane, 800, 500);
+        scene.getStylesheets().add("file:src/main/resources/assets/css/style.css");
         stage.setScene(scene);
         stage.setResizable(false);
         stage.getIcons().add(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));

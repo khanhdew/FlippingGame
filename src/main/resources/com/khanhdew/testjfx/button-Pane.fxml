@@ -3,21 +3,28 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="300.0" style="-fx-spacing: 15;" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.view.ButtonPaneController">
+<VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="300.0" style="-fx-spacing: 15;" styleClass="panel" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.view.ButtonPaneController">
    <children>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
          <children>
-            <Label text="Hàng" />
-            <TextField style="-fx-pref-width: 50;" fx:id="row"/>
-            <Label text="Cột" />
-            <TextField style="-fx-pref-width: 50;" fx:id="col"/>
+            <Button fx:id="reset" mnemonicParsing="false" styleClass="btn" />
+            <Button fx:id="undo" mnemonicParsing="false" style="visibility: false;" styleClass="btn" />
+            <Button fx:id="setting" mnemonicParsing="false" style="visibility: true;" styleClass="btn" />
          </children>
       </HBox>
-      <Label text="Người chơi 1" />
-      <ComboBox prefWidth="150.0" fx:id="player1"/>
-      <Label text="Người chơi 2" />
-      <ComboBox prefWidth="150.0" fx:id="player2" />
-      <Button mnemonicParsing="false" text="Game mới" fx:id="newGame" onAction="#startNewGame"/>
-      <Button mnemonicParsing="false" text="Thoát" fx:id="exit"/>
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
+         <children>
+            <Label fx:id="rowLabel" />
+            <TextField fx:id="row" style="-fx-pref-width: 50;" />
+            <Label fx:id="colLabel" />
+            <TextField fx:id="col" style="-fx-pref-width: 50;" />
+         </children>
+      </HBox>
+      <Label fx:id="player1Label" />
+      <ComboBox fx:id="player1" prefWidth="150.0" styleClass="split-menu-btn" />
+      <Label fx:id="player2Label" />
+      <ComboBox fx:id="player2" prefWidth="150.0" styleClass="split-menu-btn" />
+      <Button fx:id="newGame" mnemonicParsing="false" styleClass="btn" />
+      <Button fx:id="exit" mnemonicParsing="false" styleClass="btn-danger" />
    </children>
 </VBox>

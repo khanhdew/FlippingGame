@@ -32,20 +32,15 @@ public class Piece extends Circle {
         this.y = getY(row);
         this.currentState = currentState;
         this.lastState = currentState;
-        initCir(currentState);
-
     }
 
     public void initCir(PieceState pieceState) {
-        if (highlight) {
+        if (pieceState == PieceState.EMPTY) {
             setCenterX(x);
             setCenterY(y);
             setRadius((double) PIECE_SIZE / 2);
             setFill(Color.TRANSPARENT);
-            setStroke(Color.web("#7DDA58"));
-            setStrokeWidth(5 * SCALE);
-            getStrokeDashArray().addAll(25 * SCALE, 19 * SCALE);
-            rotate();
+            setStroke(Color.TRANSPARENT);
         } else if (pieceState == PieceState.BLACK) {
             LinearGradient gradient1 = new LinearGradient(0, 0, 1, 0, true, // proportional
                     javafx.scene.paint.CycleMethod.NO_CYCLE, // cycle colors
@@ -57,7 +52,6 @@ public class Piece extends Circle {
             setStroke(Color.web("#000"));
             setStrokeWidth(5 * SCALE);
             setStrokeType(StrokeType.INSIDE);
-            getStrokeDashArray().clear();
 
         } else if (pieceState == PieceState.WHITE) {
             LinearGradient gradient2 = new LinearGradient(0, 0, 1, 0, true, // proportional
@@ -70,13 +64,6 @@ public class Piece extends Circle {
             setStroke(Color.web("#bababa"));
             setStrokeWidth(5 * SCALE);
             setStrokeType(StrokeType.INSIDE);
-            getStrokeDashArray().clear();
-        }
-        else {
-            setCenterX(x);
-            setCenterY(y);
-            setRadius((double) PIECE_SIZE / 2);
-            setFill(Color.TRANSPARENT);
         }
 
 
@@ -139,34 +126,6 @@ public class Piece extends Circle {
         rotateTransition.setByAngle(360);
         rotateTransition.setCycleCount(Animation.INDEFINITE);
         rotateTransition.play();
-    }
-
-    public void shrinkDisappear() {
-        ScaleTransition st = new ScaleTransition(Duration.seconds(1), this);
-        st.setToX(0);
-        st.setToY(0);
-
-        FadeTransition ft = new FadeTransition(Duration.seconds(1), this);
-        ft.setToValue(0);
-
-        st.play();
-        ft.play();
-    }
-
-    public void growAppear() {
-        ScaleTransition st = new ScaleTransition(Duration.seconds(1), this);
-        st.setToX(1);
-        st.setToY(1);
-
-        FadeTransition ft = new FadeTransition(Duration.seconds(1), this);
-        ft.setToValue(1);
-
-        st.play();
-        ft.play();
-    }
-
-    public void stopRotate() {
-        rotateTransition.stop();
     }
 
     @Override

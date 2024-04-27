@@ -1,21 +1,19 @@
 //package com.khanhdew.testjfx.model;
 //
+//import com.khanhdew.testjfx.utils.BoardHelper;
+//
 //public class EasyAI extends Player {
 //    public EasyAI(int id, String name) {
 //        super(id, name);
 //    }
 //
-//    @Override
-//    public Move makeMove(Board board) {
-//        return minimax(board);
-//    }
 //
-//    private Move minimax(Board board) {
-//        Move bestMove = null;
+//    private void minimax(int[][] board) {
+//        Piece bestMove = null;
 //        int bestScore = Integer.MIN_VALUE;
 //
-//        for (Move move : board.getValidMoves()) {
-//            Board newBoard = board.clone();
+//        for (Piece move : BoardHelper.getAvailableMoves(board, getPlayerId())) {
+//            int[][] newBoard = board.clone();
 //            newBoard.makeMove(move, this.getId());
 //            int score = minimax(newBoard, 0, false);
 //            if (score > bestScore) {
@@ -27,7 +25,7 @@
 //        return bestMove;
 //    }
 //
-//    private int minimax(Board board, int depth, boolean isMaximizingPlayer) {
+//    private int minimax(int[][] board, int depth, boolean isMaximizingPlayer) {
 //        if (board.isGameOver() || depth == 10) {
 //            return evaluateBoard(board);
 //        }
@@ -53,7 +51,7 @@
 //        }
 //    }
 //
-//    private int evaluateBoard(Board board) {
+//    private int evaluateBoard(int[][] board) {
 //        // Implement your own board evaluation function here
 //        return 0;
 //    }
