@@ -41,7 +41,7 @@ public enum Language {
         english.put("adviceInput", "Please enter valid values for the fields");
         english.put("gameOver", "Game Over");
         english.put("win", "Wins!");
-        english.put("winContext", " has won the game with a score of ");
+        english.put("winContext", "has won the game with a score of ");
         english.put("draw", "Draw!");
         english.put("drawContext", "The game has ended in a draw with both players scoring ");
         english.put("player1Name", "Player 1 Name");
@@ -70,7 +70,7 @@ public enum Language {
         vietnamese.put("adviceInput", "Vui lòng nhập giá trị hợp lệ cho các trường");
         vietnamese.put("gameOver", "Kết thúc trò chơi");
         vietnamese.put("win", "Thắng!");
-        vietnamese.put("winContext", " đã thắng trận đấu với số điểm là ");
+        vietnamese.put("winContext", "đã thắng trận đấu với số điểm là ");
         vietnamese.put("draw", "Hòa!");
         vietnamese.put("drawContext", "Trận đấu kết thúc hòa với cả hai người chơi đều có số điểm là ");
         vietnamese.put("player1Name", "Tên người 1");

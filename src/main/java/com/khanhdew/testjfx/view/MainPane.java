@@ -57,10 +57,12 @@ public class MainPane extends BorderPane {
     Player p2;
     int turn = 1;
     private long lastMoveTime = 0;
+    private boolean hasAImoved = false;
 
-    public ArrayList<Piece> pieces = new ArrayList<>();
-    public int[][] matrix;
-    private Stack<Piece> historyMove = new Stack<>();
+
+    public static ArrayList<Piece> pieces = new ArrayList<>();
+    public static int[][] matrix;
+    private static Stack<Piece> historyMove = new Stack<>();
 
     public MainPane(String player1Type, String player2Type, Language gameLanguage) {
         this.gameLanguage = gameLanguage;
@@ -74,6 +76,7 @@ public class MainPane extends BorderPane {
                 p1 = new HumanPlayer(1, languageMap.get("player1"));
                 break;
             case "easyai":
+                p1 = new EasyAI(1, languageMap.get("player1"));
                 break;
         }
         switch (player2Type) {
@@ -81,6 +84,7 @@ public class MainPane extends BorderPane {
                 p2 = new HumanPlayer(1, languageMap.get("player2"));
                 break;
             case "easyai":
+                p2 = new EasyAI(1, languageMap.get("player2"));
                 break;
         }
     }
@@ -194,11 +198,17 @@ public class MainPane extends BorderPane {
         }
         if (now - lastMoveTime > 600) {
             if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
-                if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                    manageTurn();
-                    showScore();
+                // Only allow the user to move if it's not the AI's turn
+                if ((turn == 1 && !(p1 instanceof EasyAI)) || (turn == 2 && !(p2 instanceof EasyAI))) {
+                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
+                        manageTurn();
+                        showScore();
+                    }
                 }
                 mouse.mouseClicked = false;
+            }else if(!hasAImoved && (p1 instanceof AI || p2 instanceof AI)){
+                handleAI();
+                hasAImoved = true;
             }
             lastMoveTime = now;
         }
@@ -208,7 +218,7 @@ public class MainPane extends BorderPane {
         return turn;
     }
 
-    public boolean move(int col, int row, int playerId) {
+    public static boolean move(int col, int row, int playerId) {
         for (Piece piece : pieces) {
             if (piece.getCol() == col && piece.getRow() == row) {
                 if (piece.getCurrentState() == PieceState.EMPTY) {
@@ -229,7 +239,7 @@ public class MainPane extends BorderPane {
         return false;
     }
 
-    public void changePieceState(ArrayList<Piece> changes, int playerId) {
+    public static void changePieceState(ArrayList<Piece> changes, int playerId) {
 //        for(Piece piece : changes){
 //            System.out.println(piece);
 //        }
@@ -288,6 +298,7 @@ public class MainPane extends BorderPane {
                 turn = 1;
             }
         }
+        hasAImoved = false;
     }
 
     public void setScore() {
@@ -504,8 +515,7 @@ public class MainPane extends BorderPane {
         matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
 
         // Tạo người chơi mới dựa trên loại người chơi đã chọn
-        p1 = new HumanPlayer(1, "Player 1");
-        p2 = new HumanPlayer(2, "Player 2");
+        setPlayers(player1Type, player2Type);
 
         // Đặt lại điểm số
         p1.setScore(0);
@@ -529,6 +539,22 @@ public class MainPane extends BorderPane {
             gamePane.getChildren().add(piece);
         }
         Board.draw(c1.getGraphicsContext2D());
+    }
+
+    public void handleAI() {
+        if (turn == 1 && p1 instanceof AI) {
+            Piece nextMove = ((AI) p1).makeMove(matrix);
+            if (move(nextMove.getCol(), nextMove.getRow(), turn)) {
+                manageTurn();
+                showScore();
+            }
+        } else if (turn == 2 && p2 instanceof AI) {
+            Piece nextMove = ((AI) p2).makeMove(matrix);
+            if (move(nextMove.getCol(), nextMove.getRow(), turn)) {
+                manageTurn();
+                showScore();
+            }
+        }
     }
 
     public Language getGameLanguage() {
