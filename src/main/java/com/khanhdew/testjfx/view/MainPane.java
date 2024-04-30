@@ -8,6 +8,7 @@ import com.khanhdew.testjfx.utils.Mouse;
 import javafx.animation.*;
 
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -136,7 +137,6 @@ public class MainPane extends BorderPane {
                 if (lastTick == 0) {
                     lastTick = now;
                     update();
-
                     return;
                 }
                 if (now - lastTick > 1000000000 / 60) {
@@ -177,7 +177,7 @@ public class MainPane extends BorderPane {
         BoardHelper.toMatrix(matrix, pieces);
     }
 
-    public void resetBoard() {
+    public void reset() {
         gamePane.getChildren().clear();
         gamePane.getChildren().add(c1);
         pieces.clear();
@@ -189,26 +189,19 @@ public class MainPane extends BorderPane {
         p1.setScore(0);
         p2.setScore(0);
         turn = 1;
+        mouse.clear();
+        mouse.mouseClicked = true;
     }
 
     public void update() {
-        long now = System.currentTimeMillis();
+
         for (Piece piece : pieces) {
             piece.initCir(piece.getCurrentState());
         }
+        long now = System.currentTimeMillis();
         if (now - lastMoveTime > 600) {
-            if (mouse.mouseClicked && mouse.x > 0 && mouse.y > 0) {
-                // Only allow the user to move if it's not the AI's turn
-                if ((turn == 1 && !(p1 instanceof EasyAI)) || (turn == 2 && !(p2 instanceof EasyAI))) {
-                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                        manageTurn();
-                        showScore();
-                    }
-                }
-                mouse.mouseClicked = false;
-            }else if(!hasAImoved && (p1 instanceof AI || p2 instanceof AI)){
-                handleAI();
-                hasAImoved = true;
+            if (mouse.mouseClicked) {
+                manageTurn();
             }
             lastMoveTime = now;
         }
@@ -289,16 +282,38 @@ public class MainPane extends BorderPane {
                 }
                 alert.showAndWait();
             });
+            mouse.mouseClicked = false;
         } else {
             if (turn == 1) {
-                setScore();
-                turn = 2;
+                handleAI(p1);
+
+                if (mouse.x > 0 && mouse.y > 0) {
+                    // Only allow the user to move if it's not the AI's turn
+                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
+                        turn = 2;
+//                        manageTurn();
+                        setScore();
+                        showScore();
+                    }
+                }
+
             } else {
-                setScore();
-                turn = 1;
+                handleAI(p2);
+
+                if (mouse.x > 0 && mouse.y > 0) {
+                    // Only allow the user to move if it's not the AI's turn
+                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
+                        turn = 1;
+//                        manageTurn();
+                        setScore();
+                        showScore();
+                    }
+                }
+
             }
+
+//            mouse.clear();
         }
-        hasAImoved = false;
     }
 
     public void setScore() {
@@ -435,7 +450,7 @@ public class MainPane extends BorderPane {
         Menu gameMenu = new Menu("Game");
         MenuItem newItem = new MenuItem("New game");
         newItem.setOnAction(e -> {
-            resetBoard();
+            reset();
         });
         gameMenu.getItems().add(newItem);
         MenuItem exitItem = new MenuItem("Exit");
@@ -526,8 +541,6 @@ public class MainPane extends BorderPane {
 
         // Vẽ lại bảng
         c1 = new Canvas(800, 800);
-        //Set player
-        setPlayers(player1Type, player2Type);
 
         // Vẽ lại game
         gamePane.getChildren().clear();
@@ -541,20 +554,17 @@ public class MainPane extends BorderPane {
         Board.draw(c1.getGraphicsContext2D());
     }
 
-    public void handleAI() {
-        if (turn == 1 && p1 instanceof AI) {
-            Piece nextMove = ((AI) p1).makeMove(matrix);
+    public void handleAI(Player ai) {
+        Piece nextMove;
+        if (ai instanceof AI) {
+            nextMove = ((AI) ai).makeMove(matrix);
             if (move(nextMove.getCol(), nextMove.getRow(), turn)) {
-                manageTurn();
-                showScore();
-            }
-        } else if (turn == 2 && p2 instanceof AI) {
-            Piece nextMove = ((AI) p2).makeMove(matrix);
-            if (move(nextMove.getCol(), nextMove.getRow(), turn)) {
-                manageTurn();
+                turn = (turn == 1) ? 2 : 1;
+                setScore();
                 showScore();
             }
         }
+
     }
 
     public Language getGameLanguage() {

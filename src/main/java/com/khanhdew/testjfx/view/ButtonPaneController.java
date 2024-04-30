@@ -4,13 +4,8 @@ import com.google.common.collect.BiMap;
 import com.khanhdew.testjfx.utils.BoardHelper;
 import com.khanhdew.testjfx.utils.Language;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-
-import java.net.URL;
-import java.util.ResourceBundle;
 
 public class ButtonPaneController {
     @FXML
@@ -39,7 +34,7 @@ public class ButtonPaneController {
         reset.setText(languageMap.get("reset"));
 //        reset.getStyleClass().add("btn");
         reset.setOnAction(e -> {
-            mainPane.resetBoard();
+            mainPane.reset();
             mainPane.showScore();
         });
         exit.setText(languageMap.get("exit"));

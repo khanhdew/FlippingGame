@@ -7,7 +7,7 @@ import javafx.scene.input.MouseEvent;
 
 public class Mouse implements EventHandler<MouseEvent> {
     public int x, y;
-    public boolean mouseClicked = false;
+    public boolean mouseClicked = true;
 
     @Override
     public void handle(MouseEvent mouseEvent) {
