@@ -6,8 +6,8 @@ import com.google.common.collect.HashBiMap;
 
 public enum Language {
     ENGLISH, VIETNAMESE;
-    public static BiMap<String, String> english = HashBiMap.create();
-    public static BiMap<String, String> vietnamese = HashBiMap.create();
+    public static final BiMap<String, String> english = HashBiMap.create();
+    public static final BiMap<String, String> vietnamese = HashBiMap.create();
 
     public BiMap<String, String> getLanguage() {
         initEnglish();
@@ -49,6 +49,8 @@ public enum Language {
         english.put("reset", "Reset");
         english.put("setting", "Settings");
         english.put("undo", "Undo");
+        english.put("save", "Save");
+        english.put("load", "Load");
     }
 
     public void initVietnamese() {
@@ -78,5 +80,7 @@ public enum Language {
         vietnamese.put("reset", "Làm mới");
         vietnamese.put("setting", "Cài đặt");
         vietnamese.put("undo", "Hoàn tác");
+        vietnamese.put("save", "Lưu");
+        vietnamese.put("load", "Tải");
     }
 }

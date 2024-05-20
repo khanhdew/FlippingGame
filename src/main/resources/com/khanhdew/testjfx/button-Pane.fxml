@@ -5,13 +5,16 @@
 
 <VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="300.0" style="-fx-spacing: 15;" styleClass="panel" xmlns="http://javafx.com/javafx/11.0.14-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.khanhdew.testjfx.view.ButtonPaneController">
    <children>
-      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
+      <FlowPane alignment="CENTER" columnHalignment="CENTER" hgap="10.0" maxWidth="300.0" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;" vgap="10.0">
          <children>
             <Button fx:id="reset" mnemonicParsing="false" styleClass="btn" />
             <Button fx:id="undo" mnemonicParsing="false" style="visibility: false;" styleClass="btn" />
             <Button fx:id="setting" mnemonicParsing="false" style="visibility: true;" styleClass="btn" />
+            <Button fx:id="saveGame" mnemonicParsing="false" style="visibility: false;" styleClass="btn" />
+            <Button fx:id="loadSavedGame" mnemonicParsing="false" style="visibility: false;" styleClass="btn" />
          </children>
-      </HBox>
+      </FlowPane>
+      <HBox fx:id="savePane" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" />
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" style="-fx-spacing: 10;">
          <children>
             <Label fx:id="rowLabel" />

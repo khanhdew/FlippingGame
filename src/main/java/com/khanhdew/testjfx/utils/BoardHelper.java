@@ -4,6 +4,7 @@ import com.khanhdew.testjfx.model.Piece;
 import com.khanhdew.testjfx.model.PieceState;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class BoardHelper {
@@ -34,6 +35,21 @@ public class BoardHelper {
             }
             System.out.println();
         }
+    }
+
+    public static ArrayList<Piece> matrixToPieces(int[][] matrix) {
+        ArrayList<Piece> pieces = new ArrayList<>();
+        for (int i = 0; i < matrix.length; i++)
+            for (int j = 0; j < matrix[0].length; j++) {
+                if (matrix[i][j] == 1)
+                    pieces.add(new Piece(i, j, PieceState.BLACK));
+                else if (matrix[i][j] == 2)
+                    pieces.add(new Piece(i, j, PieceState.WHITE));
+                else{
+                    pieces.add(new Piece(i, j, PieceState.EMPTY));
+                }
+            }
+        return pieces;
     }
 
     public static void printAllPieces(ArrayList<Piece> pieces) {
