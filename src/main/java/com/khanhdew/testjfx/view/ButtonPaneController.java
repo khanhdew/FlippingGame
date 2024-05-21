@@ -57,8 +57,8 @@ public class ButtonPaneController {
                 int rows = Integer.parseInt(row.getText());
                 int cols = Integer.parseInt(col.getText());
 
-                String player1Type = player1.getValue().toString();
-                String player2Type = player2.getValue().toString();
+                String player1Type = languageMap.inverse().get(player1.getValue().toString());
+                String player2Type = languageMap.inverse().get(player2.getValue().toString());
                 mainPane.newGame(rows, cols, player1Type, player2Type);
 
             } catch (NumberFormatException ex) {

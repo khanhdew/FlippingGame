@@ -11,6 +11,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.awt.*;
@@ -67,9 +68,9 @@ public class WelcomePaneController implements Initializable {
             mainPane.setPrefSize(MainPane.getWIDTH(), MainPane.getHEIGHT());
             stage.setScene(new Scene(mainPane, MainPane.getWIDTH(), MainPane.getHEIGHT()));
 //            Đặt vị trí của cửa sổ ở giữa màn hình
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            stage.setX(screenSize.getWidth() / 2 - (double) MainPane.getWIDTH() / 2);
-            stage.setY(screenSize.getHeight() / 2 - (double) MainPane.getHEIGHT() / 2);
+            Screen screen = Screen.getPrimary();
+            stage.setX((screen.getBounds().getWidth() - MainPane.getWIDTH()) / 2);
+            stage.setY((screen.getBounds().getHeight() - MainPane.getHEIGHT()) / 2 - 50);
         } catch (Exception e) {
             alert.showAndWait();
             e.printStackTrace();

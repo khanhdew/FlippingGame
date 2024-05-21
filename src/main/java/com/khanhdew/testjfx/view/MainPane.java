@@ -522,6 +522,7 @@ public class MainPane extends BorderPane {
 
     public void newGame(int row, int col, String player1Type, String player2Type) {
         // Tạo board mới với số hàng và cột đã chọn
+        reset();
         calDimension();
         setPrefHeight(HEIGHT);
         setPrefWidth(WIDTH);
@@ -543,6 +544,7 @@ public class MainPane extends BorderPane {
         c1 = new Canvas(800, 800);
 
         // Vẽ lại game
+        showScore();
         gamePane.getChildren().clear();
         gamePane.getChildren().add(c1);
         pieces.clear();
