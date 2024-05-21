@@ -495,6 +495,7 @@ public class MainPane extends BorderPane {
     }
 
     public void unDo() {
+        mouse.clear();
         if (!historyMove.isEmpty()) {
             Piece piece = historyMove.pop();
             piece.setState(PieceState.EMPTY);
@@ -523,6 +524,7 @@ public class MainPane extends BorderPane {
 
     public void newGame(int row, int col, String player1Type, String player2Type) {
         // Tạo board mới với số hàng và cột đã chọn
+        reset();
         calDimension();
         setPrefHeight(HEIGHT);
         setPrefWidth(WIDTH);
@@ -543,7 +545,7 @@ public class MainPane extends BorderPane {
         } else {
             System.out.println("Human");
         }
-
+        showScore();
         // Đặt lại điểm số
         p1.setScore(0);
         p2.setScore(0);
