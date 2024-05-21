@@ -24,7 +24,6 @@ public class Main extends Application {
         WelcomePaneController controller = loader.getController();
         controller.setStage(stage);
 
-
         Scene scene = new Scene(welcomePane, 800, 500);
         scene.getStylesheets().add("file:src/main/resources/assets/css/style.css");
         stage.setScene(scene);

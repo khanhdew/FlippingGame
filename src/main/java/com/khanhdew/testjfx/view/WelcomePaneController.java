@@ -1,9 +1,11 @@
 package com.khanhdew.testjfx.view;
 
 import com.google.common.collect.BiMap;
+import com.khanhdew.testjfx.utils.DbConnector;
 import com.khanhdew.testjfx.utils.Language;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Dimension2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -14,8 +16,11 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.awt.*;
+
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ResourceBundle;
 
 public class WelcomePaneController implements Initializable {
@@ -34,6 +39,7 @@ public class WelcomePaneController implements Initializable {
     public ComboBox player1;
     public ComboBox player2;
     public ComboBox languageOption;
+    Connection connection = DbConnector.getInstance().getConnection();
     @FXML
     private TextField rowField;
 
@@ -50,6 +56,52 @@ public class WelcomePaneController implements Initializable {
         this.stage = stage;
     }
 
+    public void loginAndRegister(MainPane mainPane) {
+        try {
+            if (player1.getValue() == languageMap.get("human")) {
+                PreparedStatement p1Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
+                p1Statement.setString(1, player1Name.getText());
+                p1Statement.executeQuery();
+                ResultSet resultSet1 = p1Statement.getResultSet();
+                if (!resultSet1.next()) {
+                    PreparedStatement preparedStatement1 = connection.prepareStatement("INSERT INTO player(name) VALUES(?)", PreparedStatement.RETURN_GENERATED_KEYS);
+                    preparedStatement1.setString(1, player1Name.getText());
+                    preparedStatement1.execute();
+                    resultSet1 = preparedStatement1.getGeneratedKeys();
+                    resultSet1.next();
+                    mainPane.getP1().setPlayerId(resultSet1.getInt("id"));
+                    mainPane.getP1().setName(player1Name.getText());
+                    preparedStatement1.close();
+                }
+                mainPane.getP1().setPlayerId(resultSet1.getInt("id"));
+                mainPane.getP1().setName(player1Name.getText());
+                p1Statement.close();
+            }
+            if (player2.getValue() == languageMap.get("human")) {
+                PreparedStatement p2Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
+                p2Statement.setString(1, player2Name.getText());
+                p2Statement.executeQuery();
+                ResultSet resultSet2 = p2Statement.getResultSet();
+                if (!resultSet2.next()) {
+                    PreparedStatement preparedStatement2 = connection.prepareStatement("INSERT INTO player(name) VALUES(?)", PreparedStatement.RETURN_GENERATED_KEYS);
+                    preparedStatement2.setString(1, player2Name.getText());
+                    preparedStatement2.executeUpdate();
+                    p2Statement.execute();
+                    resultSet2 = preparedStatement2.getGeneratedKeys();
+                    resultSet2.next();
+                    System.out.println(resultSet2.getInt("id") + player2Name.getText());
+                    mainPane.getP2().setPlayerId(resultSet2.getInt("id"));
+                    mainPane.getP2().setName(player2Name.getText());
+                    preparedStatement2.close();
+                }
+                mainPane.getP2().setPlayerId(resultSet2.getInt("id"));
+                mainPane.getP2().setName(player2Name.getText());
+                p2Statement.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @FXML
     private void startGame() {
@@ -61,13 +113,15 @@ public class WelcomePaneController implements Initializable {
                 return;
             }
 
+
 //            Tạo MainPane với số hàng và cột đã chọn
-            MainPane mainPane = new MainPane(languageMap.inverse().get(player1.getValue().toString()), languageMap.inverse().get(player2.getValue().toString()),this.language);
+            MainPane mainPane = new MainPane(languageMap.inverse().get(player1.getValue().toString()), languageMap.inverse().get(player2.getValue().toString()), this.language);
             mainPane.init(rows, cols);
-            mainPane.setPlayersName(player1Name.getText(), player2Name.getText());
+            loginAndRegister(mainPane);
             mainPane.setPrefSize(MainPane.getWIDTH(), MainPane.getHEIGHT());
+            stage.setResizable(true);
             stage.setScene(new Scene(mainPane, MainPane.getWIDTH(), MainPane.getHEIGHT()));
-//            Đặt vị trí của cửa sổ ở giữa màn hình
+            //Get the dimension of the screen
             Screen screen = Screen.getPrimary();
             stage.setX((screen.getBounds().getWidth() - MainPane.getWIDTH()) / 2);
             stage.setY((screen.getBounds().getHeight() - MainPane.getHEIGHT()) / 2 - 50);
@@ -111,7 +165,7 @@ public class WelcomePaneController implements Initializable {
             // Đặt hành động bạn muốn thực hiện khi mục được chọn thay đổi ở đây
             if (newValue.equals("English")) {
                 setLanguage(Language.ENGLISH);
-            } else if (newValue.equals("Tiếng Việt")){
+            } else if (newValue.equals("Tiếng Việt")) {
                 setLanguage(Language.VIETNAMESE);
             }
         });

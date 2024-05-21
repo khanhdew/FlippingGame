@@ -1,11 +1,18 @@
 package com.khanhdew.testjfx.view;
 
 import com.google.common.collect.BiMap;
+import com.khanhdew.testjfx.Main;
 import com.khanhdew.testjfx.utils.BoardHelper;
+import com.khanhdew.testjfx.utils.DAO;
 import com.khanhdew.testjfx.utils.Language;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+
+import java.util.List;
+
+import static com.khanhdew.testjfx.utils.DAO.loadGame;
 
 public class ButtonPaneController {
     @FXML
@@ -20,6 +27,9 @@ public class ButtonPaneController {
     public Label player2Label;
     public Button undo;
     public Button setting;
+    public HBox savePane;
+    public Button saveGame;
+    public Button loadSavedGame;
     Language language = Language.ENGLISH;
     BiMap<String, String> languageMap = language.getLanguage();
     @FXML
@@ -52,6 +62,8 @@ public class ButtonPaneController {
         player2.setValue(languageMap.get("human"));
         undo.setText(languageMap.get("undo"));
         setting.setText(languageMap.get("setting"));
+        saveGame.setText(languageMap.get("save"));
+        loadSavedGame.setText(languageMap.get("load"));
         newGame.setOnAction(e -> {
             try {
                 int rows = Integer.parseInt(row.getText());
@@ -73,7 +85,22 @@ public class ButtonPaneController {
             mainPane.unDo();
         });
         setting.setOnAction(e -> {
-            BoardHelper.printMatrix(mainPane.matrix);
+            BoardHelper.printMatrix(mainPane.getMatrix());
+        });
+        saveGame.setOnAction(e -> {
+            DAO.saveGame(mainPane);
+        });
+        loadSavedGame.setOnAction(e -> {
+//             List<MainPane> games = DAO.loadGame(mainPane);
+//             savePane.getChildren().clear();
+//                for (MainPane game : games) {
+//                    Button button = new Button("Game " + (games.indexOf(game) + 1));
+//                    button.setOnAction(event -> {
+//                        mainPane.newGame(game.getMatrix().length, game.getMatrix()[0].length, "human", "human");
+//                    });
+//                    savePane.getChildren().add(button);
+//                }
+            DAO.loadLastSave(mainPane);
         });
     }
 

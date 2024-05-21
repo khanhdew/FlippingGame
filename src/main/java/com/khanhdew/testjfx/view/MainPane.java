@@ -3,12 +3,12 @@ package com.khanhdew.testjfx.view;
 import com.google.common.collect.BiMap;
 import com.khanhdew.testjfx.model.*;
 import com.khanhdew.testjfx.utils.BoardHelper;
+import com.khanhdew.testjfx.utils.DAO;
 import com.khanhdew.testjfx.utils.Language;
 import com.khanhdew.testjfx.utils.Mouse;
 import javafx.animation.*;
 
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -45,25 +45,26 @@ public class MainPane extends BorderPane {
     private BorderPane scorePane;
     private BorderPane gamePane;
 
-    private Scene gameScene;
-    private Scene scoreScene;
     private Canvas c1;
     private Language gameLanguage = Language.ENGLISH;
     private BiMap<String, String> languageMap;
 
-    public Board board;
+    private Board board;
     Mouse mouse = new Mouse();
 
     Player p1;
     Player p2;
     int turn = 1;
     private long lastMoveTime = 0;
-    private boolean hasAImoved = false;
+    private final boolean hasAImoved = false;
 
 
-    public static ArrayList<Piece> pieces = new ArrayList<>();
-    public static int[][] matrix;
-    private static Stack<Piece> historyMove = new Stack<>();
+    private ArrayList<Piece> pieces = new ArrayList<>();
+    private int[][] matrix;
+    private final Stack<Piece> historyMove = new Stack<>();
+
+    public MainPane() {
+    }
 
     public MainPane(String player1Type, String player2Type, Language gameLanguage) {
         this.gameLanguage = gameLanguage;
@@ -101,11 +102,11 @@ public class MainPane extends BorderPane {
         calDimension();
 
         scorePane = new BorderPane();
-        scoreScene = new Scene(scorePane, 300, HEIGHT);
+        Scene scoreScene = new Scene(scorePane, 300, HEIGHT);
         scoreScene.setFill(Color.BLACK);
         scorePane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
         gamePane = new BorderPane();
-        gameScene = new Scene(gamePane, 800, HEIGHT);
+        Scene gameScene = new Scene(gamePane, 800, HEIGHT);
 
 
         gamePane.addEventHandler(MouseEvent.MOUSE_CLICKED, mouse);
@@ -207,11 +208,11 @@ public class MainPane extends BorderPane {
         }
     }
 
-    private int getTurn() {
+    public int getTurn() {
         return turn;
     }
 
-    public static boolean move(int col, int row, int playerId) {
+    public boolean move(int col, int row, int playerId) {
         for (Piece piece : pieces) {
             if (piece.getCol() == col && piece.getRow() == row) {
                 if (piece.getCurrentState() == PieceState.EMPTY) {
@@ -232,7 +233,7 @@ public class MainPane extends BorderPane {
         return false;
     }
 
-    public static void changePieceState(ArrayList<Piece> changes, int playerId) {
+    public void changePieceState(ArrayList<Piece> changes, int playerId) {
 //        for(Piece piece : changes){
 //            System.out.println(piece);
 //        }
@@ -494,6 +495,7 @@ public class MainPane extends BorderPane {
     }
 
     public void unDo() {
+        mouse.clear();
         if (!historyMove.isEmpty()) {
             Piece piece = historyMove.pop();
             piece.setState(PieceState.EMPTY);
@@ -526,13 +528,24 @@ public class MainPane extends BorderPane {
         calDimension();
         setPrefHeight(HEIGHT);
         setPrefWidth(WIDTH);
+        reset();
 //        init(row, col);
         board = new Board(row, col);
         matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
 
         // Tạo người chơi mới dựa trên loại người chơi đã chọn
         setPlayers(player1Type, player2Type);
-
+        if (p1 instanceof AI) {
+            System.out.println("AI");
+        } else {
+            System.out.println("Human");
+        }
+        if (p2 instanceof AI) {
+            System.out.println("AI");
+        } else {
+            System.out.println("Human");
+        }
+        showScore();
         // Đặt lại điểm số
         p1.setScore(0);
         p2.setScore(0);
@@ -540,6 +553,10 @@ public class MainPane extends BorderPane {
         // Đặt lại lượt chơi
         turn = 1;
 
+        reDraw();
+    }
+
+    public void reDraw() {
         // Vẽ lại bảng
         c1 = new Canvas(800, 800);
 
@@ -569,6 +586,25 @@ public class MainPane extends BorderPane {
 
     }
 
+    public void loadGame(MainPane temp){
+        int rows = temp.getMatrix().length;
+        int cols = temp.getMatrix()[0].length;
+        setBoard(rows, cols);
+        setMatrix(temp.getMatrix());
+        setPlayers("human", "human");
+        setTurn(temp.getTurn());
+        setScore();
+        showScore();
+        gamePane.getChildren().clear();
+        gamePane.getChildren().add(c1);
+        pieces.clear();
+        setPieces();
+        for (Piece piece : pieces) {
+            gamePane.getChildren().add(piece);
+        }
+
+    }
+
     public Language getGameLanguage() {
         return gameLanguage;
     }
@@ -585,5 +621,65 @@ public class MainPane extends BorderPane {
 
     public void setLanguageMap(BiMap<String, String> languageMap) {
         this.languageMap = languageMap;
+    }
+
+    public Player getP1() {
+        return p1;
+    }
+
+    public void setP1(Player p1) {
+        this.p1 = p1;
+    }
+
+    public Player getP2() {
+        return p2;
+    }
+
+    public void setP2(Player p2) {
+        this.p2 = p2;
+    }
+
+    public int[][] getMatrix() {
+        return matrix;
+    }
+
+    public void setMatrix(int[][] matrix) {
+        this.matrix = matrix;
+    }
+
+    public void setTurn(int turn) {
+        this.turn = turn;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(int row, int col) {
+        board = new Board(row, col);
+    }
+
+    public ArrayList<Piece> getPieces() {
+        return pieces;
+    }
+
+    public void setPieces(ArrayList<Piece> pieces) {
+        this.pieces = pieces;
+    }
+
+    public BorderPane getGamePane() {
+        return gamePane;
+    }
+
+    public void setGamePane(BorderPane gamePane) {
+        this.gamePane = gamePane;
+    }
+
+    public Canvas getC1() {
+        return c1;
+    }
+
+    public void setC1(Canvas c1) {
+        this.c1 = c1;
     }
 }

@@ -54,8 +54,12 @@
             <artifactId>google-collections</artifactId>
             <version>1.0-rc2</version>
         </dependency>
-
-
+        <!--postgresql driver-->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.23</version>
+        </dependency>
     </dependencies>
 
     <build>

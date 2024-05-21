@@ -5,6 +5,7 @@ module com.khanhdew.testjfx {
     requires org.kordamp.bootstrapfx.core;
     requires java.desktop;
     requires google.collections;
+    requires java.sql;
 
 
     opens com.khanhdew.testjfx to javafx.fxml;
