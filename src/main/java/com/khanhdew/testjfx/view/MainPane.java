@@ -561,6 +561,7 @@ public class MainPane extends BorderPane {
         c1 = new Canvas(800, 800);
 
         // Vẽ lại game
+        showScore();
         gamePane.getChildren().clear();
         gamePane.getChildren().add(c1);
         pieces.clear();

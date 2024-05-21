@@ -125,7 +125,6 @@ public class WelcomePaneController implements Initializable {
             Screen screen = Screen.getPrimary();
             stage.setX((screen.getBounds().getWidth() - MainPane.getWIDTH()) / 2);
             stage.setY((screen.getBounds().getHeight() - MainPane.getHEIGHT()) / 2 - 50);
-
         } catch (Exception e) {
             alert.showAndWait();
             e.printStackTrace();
