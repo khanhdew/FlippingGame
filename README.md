@@ -1,4 +1,4 @@
-# TestJFX Project
+# Flipping Game
 
 ## Overview
 The TestJFX project is a JavaFX application designed to demonstrate a simple user interface with JavaFX. It includes a welcome pane that users first see upon launching the application.
