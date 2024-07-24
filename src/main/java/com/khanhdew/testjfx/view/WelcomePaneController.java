@@ -61,42 +61,46 @@ public class WelcomePaneController implements Initializable {
             if (player1.getValue() == languageMap.get("human")) {
                 PreparedStatement p1Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
                 p1Statement.setString(1, player1Name.getText());
-                p1Statement.executeQuery();
-                ResultSet resultSet1 = p1Statement.getResultSet();
-                if (!resultSet1.next()) {
+                ResultSet rs = p1Statement.executeQuery();
+                if (!rs.next()) {
                     PreparedStatement preparedStatement1 = connection.prepareStatement("INSERT INTO player(name) VALUES(?)", PreparedStatement.RETURN_GENERATED_KEYS);
                     preparedStatement1.setString(1, player1Name.getText());
-                    preparedStatement1.execute();
-                    resultSet1 = preparedStatement1.getGeneratedKeys();
-                    resultSet1.next();
-                    mainPane.getP1().setPlayerId(resultSet1.getInt("id"));
+                    preparedStatement1.executeUpdate();
+                    try (ResultSet generatedKeys = preparedStatement1.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            mainPane.getP1().setPlayerId(generatedKeys.getInt(1));
+                        }
+                    }
                     mainPane.getP1().setName(player1Name.getText());
                     preparedStatement1.close();
+                } else {
+                    mainPane.getP1().setPlayerId(rs.getInt("id"));
+                    mainPane.getP1().setName(player1Name.getText());
                 }
-                mainPane.getP1().setPlayerId(resultSet1.getInt("id"));
-                mainPane.getP1().setName(player1Name.getText());
                 p1Statement.close();
+                rs.close();
             }
             if (player2.getValue() == languageMap.get("human")) {
                 PreparedStatement p2Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
                 p2Statement.setString(1, player2Name.getText());
-                p2Statement.executeQuery();
-                ResultSet resultSet2 = p2Statement.getResultSet();
-                if (!resultSet2.next()) {
+                ResultSet rs = p2Statement.executeQuery();
+                if (!rs.next()) {
                     PreparedStatement preparedStatement2 = connection.prepareStatement("INSERT INTO player(name) VALUES(?)", PreparedStatement.RETURN_GENERATED_KEYS);
                     preparedStatement2.setString(1, player2Name.getText());
                     preparedStatement2.executeUpdate();
-                    p2Statement.execute();
-                    resultSet2 = preparedStatement2.getGeneratedKeys();
-                    resultSet2.next();
-                    System.out.println(resultSet2.getInt("id") + player2Name.getText());
-                    mainPane.getP2().setPlayerId(resultSet2.getInt("id"));
+                    try (ResultSet generatedKeys = preparedStatement2.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            mainPane.getP2().setPlayerId(generatedKeys.getInt(1));
+                        }
+                    }
                     mainPane.getP2().setName(player2Name.getText());
                     preparedStatement2.close();
+                }else{
+                    mainPane.getP2().setPlayerId(rs.getInt("id"));
+                    mainPane.getP2().setName(player2Name.getText());
                 }
-                mainPane.getP2().setPlayerId(resultSet2.getInt("id"));
-                mainPane.getP2().setName(player2Name.getText());
                 p2Statement.close();
+                rs.close();
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -7,6 +7,8 @@ import javafx.scene.canvas.Canvas;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +18,7 @@ public class DAO {
     public static void saveGame(MainPane mainPane) {
         int[][] matrix = mainPane.getMatrix();
         String matrixString = matrixToString(matrix);
-        String query = "INSERT INTO game (width, height, board, player1, player2, turn) VALUES (?,?, ?, ?, ?, ?)";
+        String query = "INSERT INTO game (width, height, board, player1,  player2, turn) VALUES (?,?, ?, ?, ?, ?)";
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(3, matrixString);
@@ -69,53 +71,52 @@ public class DAO {
     }
 
     public static void loadLastSave(MainPane mainPane) {
-        String query = "SELECT * FROM game WHERE player1 = ? AND player2 = ? order by id desc limit 1";
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+        String query = "SELECT * FROM game WHERE player1 = ? AND player2 = ? ORDER BY id DESC LIMIT 1";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, mainPane.getP1().getPlayerId());
             preparedStatement.setInt(2, mainPane.getP2().getPlayerId());
-            preparedStatement.executeQuery();
 
-            while (preparedStatement.getResultSet().next()) {
-                int rows = preparedStatement.getResultSet().getInt("height");
-                int cols = preparedStatement.getResultSet().getInt("width");
-                String matrixString = preparedStatement.getResultSet().getString("board");
-                int[][] matrix = stringToMatrix(matrixString, rows, cols);
-                BoardHelper.printMatrix(matrix);
-                ArrayList<Piece> pieces = BoardHelper.matrixToPieces(matrix);
-                mainPane.setBoard(rows, cols);
-                mainPane.getP1().setPlayerId(preparedStatement.getResultSet().getInt("player1"));
-                mainPane.getP2().setPlayerId(preparedStatement.getResultSet().getInt("player2"));
-                mainPane.setMatrix(matrix);
-                mainPane.setTurn(preparedStatement.getResultSet().getInt("turn"));
-                mainPane.setPieces(pieces);
-                mainPane.getGamePane().getChildren().clear();
-                mainPane.setC1(new Canvas(800,800));
-                mainPane.getGamePane().getChildren().add(mainPane.getC1());
-                for(Piece piece: pieces){
-                    piece.setPieceSize(Board.getSquareSize());
-                    mainPane.getGamePane().getChildren().add(piece);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int rows = resultSet.getInt("height");
+                    int cols = resultSet.getInt("width");
+                    String matrixString = resultSet.getString("board");
+                    int[][] matrix = stringToMatrix(matrixString, rows, cols);
+                    BoardHelper.printMatrix(matrix);
+                    ArrayList<Piece> pieces = BoardHelper.matrixToPieces(matrix);
+                    mainPane.setBoard(rows, cols);
+                    mainPane.getP1().setPlayerId(resultSet.getInt("player1"));
+                    mainPane.getP2().setPlayerId(resultSet.getInt("player2"));
+                    mainPane.setMatrix(matrix);
+                    mainPane.setTurn(resultSet.getInt("turn"));
+                    mainPane.setPieces(pieces);
+                    mainPane.getGamePane().getChildren().clear();
+                    mainPane.setC1(new Canvas(800, 800));
+                    mainPane.getGamePane().getChildren().add(mainPane.getC1());
+                    for (Piece piece : pieces) {
+                        piece.setPieceSize(Board.getSquareSize());
+                        mainPane.getGamePane().getChildren().add(piece);
+                    }
+                    Board.draw(mainPane.getC1().getGraphicsContext2D());
+                    mainPane.setScore();
+                    mainPane.showScore();
                 }
-                Board.draw(mainPane.getC1().getGraphicsContext2D());
-                mainPane.setScore();
-                mainPane.showScore();
             }
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-        private static int[][] stringToMatrix(String matrixString,int rows, int cols){
-            int[][] matrix = new int[rows][cols];
-            int index = 0;
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    matrix[i][j] = matrixString.charAt(index) - '0';
-                    index++;
-                }
+    private static int[][] stringToMatrix(String matrixString, int rows, int cols) {
+        int[][] matrix = new int[rows][cols];
+        int index = 0;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                matrix[i][j] = matrixString.charAt(index) - '0';
+                index++;
             }
-            return matrix;
         }
-
+        return matrix;
     }
+
+}

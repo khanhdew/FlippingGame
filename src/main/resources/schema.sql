@@ -1,14 +1,15 @@
-create table game(
-    id serial primary key,
-    width int,
-    height int,
-    board varchar(2500),
-    player1 int,
-    player2 int,
-    turn int
+CREATE TABLE IF NOT EXISTS game (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    width INTEGER,
+    height INTEGER,
+    board TEXT,
+    player1 INTEGER,
+    player2 INTEGER,
+    turn INTEGER
 );
-create table player(
-    id serial primary key,
-    name varchar(50),
-    win int
+
+CREATE TABLE IF NOT EXISTS player (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    win INTEGER
 );
