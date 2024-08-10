@@ -1,4 +1,4 @@
-package com.khanhdew.testjfx.model;
+package com.khanhdew.flipping.model;
 
 import java.util.ArrayList;
 

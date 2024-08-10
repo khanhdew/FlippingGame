@@ -1,18 +1,13 @@
-package com.khanhdew.testjfx.view;
+package com.khanhdew.flipping.view;
 
 import com.google.common.collect.BiMap;
-import com.khanhdew.testjfx.Main;
-import com.khanhdew.testjfx.utils.BoardHelper;
-import com.khanhdew.testjfx.utils.DAO;
-import com.khanhdew.testjfx.utils.Language;
+import com.khanhdew.flipping.utils.BoardHelper;
+import com.khanhdew.flipping.utils.DAO;
+import com.khanhdew.flipping.utils.Language;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-
-import java.util.List;
-
-import static com.khanhdew.testjfx.utils.DAO.loadGame;
 
 public class ButtonPaneController {
     @FXML

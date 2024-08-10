@@ -1,4 +1,4 @@
-package com.khanhdew.testjfx.utils;
+package com.khanhdew.flipping.utils;
 
 
 import com.google.common.collect.BiMap;

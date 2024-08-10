@@ -39,4 +39,5 @@ This project is open source and available under the [GNU License](LICENSE).
 
 ## Sponsor
 ![IntelliJ IDEA](https://www.jetbrains.com/idea/img/idea-edu.svg)
-<img alt="image" height="auto" src="src/main/resources/assets/img/1password-8-seeklogo.svg" width="75"/>
+<a href="https://1password.com/"><img alt="image" height="auto" src="src/main/resources/assets/img/1password-8-seeklogo.svg" width="75"/>
+</a>

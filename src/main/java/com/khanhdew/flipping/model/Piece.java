@@ -1,10 +1,8 @@
-package com.khanhdew.testjfx.model;
+package com.khanhdew.flipping.model;
 
 
 import javafx.animation.Animation;
-import javafx.animation.FadeTransition;
 import javafx.animation.RotateTransition;
-import javafx.animation.ScaleTransition;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;

@@ -1,7 +1,7 @@
-package com.khanhdew.testjfx;
+package com.khanhdew.flipping;
 
 
-import com.khanhdew.testjfx.view.WelcomePaneController;
+import com.khanhdew.flipping.view.WelcomePaneController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

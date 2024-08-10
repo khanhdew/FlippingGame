@@ -1,10 +1,9 @@
-package com.khanhdew.testjfx.utils;
+package com.khanhdew.flipping.utils;
 
-import com.khanhdew.testjfx.model.Piece;
-import com.khanhdew.testjfx.model.PieceState;
+import com.khanhdew.flipping.model.Piece;
+import com.khanhdew.flipping.model.PieceState;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 public class BoardHelper {

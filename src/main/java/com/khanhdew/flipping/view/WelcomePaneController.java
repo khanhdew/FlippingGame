@@ -1,11 +1,10 @@
-package com.khanhdew.testjfx.view;
+package com.khanhdew.flipping.view;
 
 import com.google.common.collect.BiMap;
-import com.khanhdew.testjfx.utils.DbConnector;
-import com.khanhdew.testjfx.utils.Language;
+import com.khanhdew.flipping.utils.DbConnector;
+import com.khanhdew.flipping.utils.Language;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Dimension2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -58,7 +57,7 @@ public class WelcomePaneController implements Initializable {
 
     public void loginAndRegister(MainPane mainPane) {
         try {
-            if (player1.getValue() == languageMap.get("human")) {
+            if (player1.getValue().equals(languageMap.get("human"))) {
                 PreparedStatement p1Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
                 p1Statement.setString(1, player1Name.getText());
                 ResultSet rs = p1Statement.executeQuery();
@@ -80,7 +79,7 @@ public class WelcomePaneController implements Initializable {
                 p1Statement.close();
                 rs.close();
             }
-            if (player2.getValue() == languageMap.get("human")) {
+            if (player2.getValue().equals(languageMap.get("human"))) {
                 PreparedStatement p2Statement = connection.prepareStatement("SELECT * FROM player WHERE name = ?");
                 p2Statement.setString(1, player2Name.getText());
                 ResultSet rs = p2Statement.executeQuery();
@@ -95,7 +94,7 @@ public class WelcomePaneController implements Initializable {
                     }
                     mainPane.getP2().setName(player2Name.getText());
                     preparedStatement2.close();
-                }else{
+                } else {
                     mainPane.getP2().setPlayerId(rs.getInt("id"));
                     mainPane.getP2().setName(player2Name.getText());
                 }

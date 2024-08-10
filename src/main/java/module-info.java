@@ -1,4 +1,4 @@
-module com.khanhdew.testjfx {
+module com.khanhdew.flipping {
     requires javafx.controls;
     requires javafx.fxml;
 
@@ -8,8 +8,8 @@ module com.khanhdew.testjfx {
     requires java.sql;
 
 
-    opens com.khanhdew.testjfx to javafx.fxml;
-    exports com.khanhdew.testjfx;
-    exports com.khanhdew.testjfx.view;
-    opens com.khanhdew.testjfx.view to javafx.fxml;
+    opens com.khanhdew.flipping to javafx.fxml;
+    exports com.khanhdew.flipping;
+    exports com.khanhdew.flipping.view;
+    opens com.khanhdew.flipping.view to javafx.fxml;
 }

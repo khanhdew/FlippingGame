@@ -1,4 +1,4 @@
-package com.khanhdew.testjfx.model;
+package com.khanhdew.flipping.model;
 
 public class HumanPlayer extends Player{
 

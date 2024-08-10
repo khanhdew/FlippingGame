@@ -1,6 +1,6 @@
-package com.khanhdew.testjfx.utils;
+package com.khanhdew.flipping.utils;
 
-import com.khanhdew.testjfx.model.Board;
+import com.khanhdew.flipping.model.Board;
 
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;

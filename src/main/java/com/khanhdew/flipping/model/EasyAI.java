@@ -1,7 +1,4 @@
-package com.khanhdew.testjfx.model;
-
-import com.khanhdew.testjfx.utils.BoardHelper;
-import com.khanhdew.testjfx.view.MainPane;
+package com.khanhdew.flipping.model;
 
 import java.util.List;
 import java.util.Random;

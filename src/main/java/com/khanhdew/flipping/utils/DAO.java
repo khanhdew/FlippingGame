@@ -1,8 +1,8 @@
-package com.khanhdew.testjfx.utils;
+package com.khanhdew.flipping.utils;
 
-import com.khanhdew.testjfx.model.Board;
-import com.khanhdew.testjfx.model.Piece;
-import com.khanhdew.testjfx.view.MainPane;
+import com.khanhdew.flipping.model.Board;
+import com.khanhdew.flipping.model.Piece;
+import com.khanhdew.flipping.view.MainPane;
 import javafx.scene.canvas.Canvas;
 
 import java.sql.Connection;

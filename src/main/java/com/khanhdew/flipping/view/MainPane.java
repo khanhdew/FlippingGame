@@ -1,11 +1,10 @@
-package com.khanhdew.testjfx.view;
+package com.khanhdew.flipping.view;
 
 import com.google.common.collect.BiMap;
-import com.khanhdew.testjfx.model.*;
-import com.khanhdew.testjfx.utils.BoardHelper;
-import com.khanhdew.testjfx.utils.DAO;
-import com.khanhdew.testjfx.utils.Language;
-import com.khanhdew.testjfx.utils.Mouse;
+import com.khanhdew.flipping.model.*;
+import com.khanhdew.flipping.utils.BoardHelper;
+import com.khanhdew.flipping.utils.Language;
+import com.khanhdew.flipping.utils.Mouse;
 import javafx.animation.*;
 
 
@@ -436,7 +435,7 @@ public class MainPane extends BorderPane {
         FXMLLoader loader = null;
         VBox pane;
         try {
-            loader = new FXMLLoader(new URL("file:src/main/resources/com/khanhdew/testjfx/button-Pane.fxml"));
+            loader = new FXMLLoader(new URL("file:src/main/resources/com/khanhdew/flipping/button-Pane.fxml"));
             pane = loader.load();
             ButtonPaneController controller = loader.getController();
             controller.setGamePane(this);

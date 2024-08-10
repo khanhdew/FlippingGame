@@ -1,4 +1,4 @@
-package com.khanhdew.testjfx.model;
+package com.khanhdew.flipping.model;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
