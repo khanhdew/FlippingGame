@@ -3,7 +3,7 @@ name: Package Java Application
 on:
   push:
     branches:
-      - main
+      - master
       - dev
       - feature-branch
 
