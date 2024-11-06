@@ -30,5 +30,6 @@ public class Main extends Application {
         stage.setResizable(true);
         stage.getIcons().add(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));
         stage.show();
+
     }
 }
