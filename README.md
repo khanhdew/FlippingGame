@@ -23,6 +23,7 @@ The TestJFX project is a JavaFX application designed to demonstrate a simple use
 - Now able to package into executable file in multi platform.
 
 ## Features
+- [x] Offline Player vs Player.
 - [x] Player vs AI.
 - [x] Database.
 - [x] Customize board size.
