@@ -20,10 +20,10 @@ The TestJFX project is a JavaFX application designed to demonstrate a simple use
 4. To start the application, run `mvn javafx:run`.
 
 ## Features
--[x] Player vs AI.
--[x] Database.
--[x] Customize board size.
--[ ] Play with friends.
+- [x] Player vs AI.
+- [x] Database.
+- [x] Customize board size.
+- [ ] Play with friends.
 
 ## Project Structure
 - `src/main/java/com/khanhdew/testjfx/Main.java`: Entry point of the application that sets up the primary stage.
