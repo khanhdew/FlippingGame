@@ -24,7 +24,7 @@ jobs:
 
       - name: Package for Linux
         run: |
-          jpackage --input target/ --name MyApp --main-jar myapp.jar --type deb --dest output/
+          jpackage --input target/ --name FlippingGame --main-jar FlippingGame-1.0.jar --type deb --dest output/
 
   build-windows:
     runs-on: windows-latest
@@ -44,4 +44,4 @@ jobs:
 
       - name: Package for Windows
         run: |
-          jpackage --input target/ --name MyApp --main-jar myapp.jar --type msi --dest output/
+          jpackage --input target/ --name FlippingGame --main-jar FlippingGame-1.0.jar --type msi --dest output/
