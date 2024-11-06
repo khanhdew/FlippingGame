@@ -92,12 +92,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
         with:
-          script: |
-            const { getOctokit, context } = require('@actions/github'); 
-            const octokit = getOctokit(process.env.GITHUB_TOKEN); 
-            const version = process.env.VERSION; 
-            const tagName = `v${version}`; 
-            async function createOrUpdateRelease() { try { const release = await octokit.rest.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: tagName, }); await octokit.rest.repos.updateRelease({ owner: context.repo.owner, repo: context.repo.repo, release_id: release.data.id, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } catch (error) { if (error.status === 404) { await octokit.rest.repos.createRelease({ owner: context.repo.owner, repo: context.repo.repo, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } else { throw error; } } } 
+          script: | 
+            const { getOctokit } = require('@actions/github'); const octokit = getOctokit(process.env.PERSONAL_GH_TOKEN); const version = process.env.VERSION; const tagName = `v${version}`; async function createOrUpdateRelease() { try { const release = await octokit.rest.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: tagName, }); await octokit.rest.repos.updateRelease({ owner: context.repo.owner, repo: context.repo.repo, release_id: release.data.id, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } catch (error) { if (error.status === 404) { await octokit.rest.repos.createRelease({ owner: context.repo.owner, repo: context.repo.repo, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } else { throw error; } } } 
             createOrUpdateRelease();
 
       - name: Upload Linux DEB package to Release
