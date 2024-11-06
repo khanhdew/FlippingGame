@@ -65,7 +65,7 @@ jobs:
           path: output/
 
   create-release:
-    needs: [build-linux, build-windows]
+    needs: [ build-linux, build-windows ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -90,42 +90,15 @@ jobs:
         id: create_release
         uses: actions/github-script@v6
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GH_TOKEN }}
         with:
           script: |
-            const tagExists = process.env.TAG_EXISTS === 'true';
-            const version = process.env.VERSION;
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-
-            if (tagExists) {
-              const releases = await octokit.rest.repos.listReleases({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-              });
-
-              const release = releases.data.find(r => r.tag_name === `v${version}`);
-
-              if (release) {
-                await octokit.rest.repos.updateRelease({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  release_id: release.id,
-                  tag_name: `v${version}`,
-                  name: `Release v${version}`,
-                  draft: false,
-                  prerelease: false,
-                });
-              }
-            } else {
-              await octokit.rest.repos.createRelease({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag_name: `v${version}`,
-                name: `Release v${version}`,
-                draft: false,
-                prerelease: false,
-              });
-            }
+            const { getOctokit, context } = require('@actions/github'); 
+            const octokit = getOctokit(process.env.GITHUB_TOKEN); 
+            const version = process.env.VERSION; 
+            const tagName = `v${version}`; 
+            async function createOrUpdateRelease() { try { const release = await octokit.rest.repos.getReleaseByTag({ owner: context.repo.owner, repo: context.repo.repo, tag: tagName, }); await octokit.rest.repos.updateRelease({ owner: context.repo.owner, repo: context.repo.repo, release_id: release.data.id, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } catch (error) { if (error.status === 404) { await octokit.rest.repos.createRelease({ owner: context.repo.owner, repo: context.repo.repo, tag_name: tagName, name: `Release ${tagName}`, draft: false, prerelease: false, }); } else { throw error; } } } 
+            createOrUpdateRelease();
 
       - name: Upload Linux DEB package to Release
         uses: actions/upload-release-asset@v1
