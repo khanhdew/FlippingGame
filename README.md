@@ -19,6 +19,9 @@ The TestJFX project is a JavaFX application designed to demonstrate a simple use
 3. Navigate to the project directory and run `mvn clean install` to build the project.
 4. To start the application, run `mvn javafx:run`.
 
+## Github Actions
+- Now able to package into executable file in multi platform.
+
 ## Features
 - [x] Player vs AI.
 - [x] Database.
