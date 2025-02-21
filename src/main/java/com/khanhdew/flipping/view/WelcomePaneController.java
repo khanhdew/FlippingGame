@@ -140,10 +140,10 @@ public class WelcomePaneController implements Initializable {
         languageMap = language.getLanguage(); // Cập nhật languageMap
         // Cập nhật các thành phần giao diện người dùng
         player1.getItems().clear();
-        player1.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player1.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"),languageMap.get("minimaxai"));
         player1.setValue(languageMap.get("human"));
         player2.getItems().clear();
-        player2.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player2.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"),languageMap.get("minimaxai"));
         player2.setValue(languageMap.get("human"));
         alert.setTitle(languageMap.get("error"));
         alert.setHeaderText(languageMap.get("invalidInput"));

@@ -26,6 +26,7 @@ public enum Language {
         english.put("welcome", "Welcome to Flipping");
         english.put("human", "Human");
         english.put("easyai", "Easy AI");
+        english.put("minimaxai","Minimax AI");
         english.put("newgame", "New Game");
         english.put("exit", "Exit");
         english.put("row", "Row");
@@ -57,6 +58,7 @@ public enum Language {
         vietnamese.put("welcome", "Chào mừng đến với Flipping");
         vietnamese.put("human", "Người chơi");
         vietnamese.put("easyai", "Máy dễ");
+        vietnamese.put("minimaxai","Minimax AI");
         vietnamese.put("newgame", "Trò chơi mới");
         vietnamese.put("exit", "Thoát");
         vietnamese.put("row", "Hàng");

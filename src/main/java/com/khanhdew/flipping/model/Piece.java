@@ -7,8 +7,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeType;
 import javafx.util.Duration;
+
+import java.awt.*;
+import java.util.Arrays;
 
 
 public class Piece extends Circle {
@@ -33,38 +37,52 @@ public class Piece extends Circle {
     }
 
     public void initCir(PieceState pieceState) {
+        // Common properties for all states
+        setCenterX(x);
+        setCenterY(y);
+        setRadius((double) PIECE_SIZE / 2);
+
         if (pieceState == PieceState.EMPTY) {
-            setCenterX(x);
-            setCenterY(y);
-            setRadius((double) PIECE_SIZE / 2);
             setFill(Color.TRANSPARENT);
             setStroke(Color.TRANSPARENT);
-        } else if (pieceState == PieceState.BLACK) {
-            LinearGradient gradient1 = new LinearGradient(0, 0, 1, 0, true, // proportional
-                    javafx.scene.paint.CycleMethod.NO_CYCLE, // cycle colors
-                    new Stop(0, Color.web("#3a3a3a")), new Stop(1, Color.web("#111")));
-            setCenterX(x);
-            setCenterY(y);
-            setRadius((double) PIECE_SIZE / 2);
-            setFill(gradient1);
-            setStroke(Color.web("#000"));
-            setStrokeWidth(5 * SCALE);
-            setStrokeType(StrokeType.INSIDE);
-
-        } else if (pieceState == PieceState.WHITE) {
-            LinearGradient gradient2 = new LinearGradient(0, 0, 1, 0, true, // proportional
-                    javafx.scene.paint.CycleMethod.NO_CYCLE, // cycle colors
-                    new Stop(0, Color.web("#aaa")), new Stop(1, Color.web("#eee")));
-            setCenterX(x);
-            setCenterY(y);
-            setRadius((double) PIECE_SIZE / 2);
-            setFill(gradient2);
-            setStroke(Color.web("#bababa"));
-            setStrokeWidth(5 * SCALE);
-            setStrokeType(StrokeType.INSIDE);
+            return;
         }
 
+        LinearGradient gradient;
+        Color strokeColor;
 
+        if (pieceState == PieceState.BLACK) {
+            gradient = new LinearGradient(0, 0, 1, 0, true,
+                    javafx.scene.paint.CycleMethod.NO_CYCLE,
+                    new Stop(0, Color.web("#3a3a3a")),
+                    new Stop(1, Color.web("#111")));
+            strokeColor = Color.web("#000");
+        } else if (pieceState == PieceState.WHITE) {
+            gradient = new LinearGradient(0, 0, 1, 0, true,
+                    javafx.scene.paint.CycleMethod.NO_CYCLE,
+                        new Stop(0, Color.web("#aaa")),
+                    new Stop(1, Color.web("#eee")));
+            strokeColor = Color.web("#bababa");
+        } else if(pieceState == PieceState.HINT){
+            setStrokeType(StrokeType.CENTERED);
+            setStroke(Color.web("#8fce00"));
+            setStrokeWidth(5);
+            setStrokeLineCap(StrokeLineCap.ROUND);
+            getStrokeDashArray().addAll(15.0);
+            // add spinning animation
+            rotate();
+            return;
+        } else {
+            return;
+        }
+
+        // remove spinning animation
+        rotateTransition.stop();
+        getStrokeDashArray().clear();
+        setFill(gradient);
+        setStroke(strokeColor);
+        setStrokeWidth(5 * SCALE);
+        setStrokeType(StrokeType.INSIDE);
     }
 
     public void updateState(PieceState pieceState) {
@@ -120,9 +138,10 @@ public class Piece extends Circle {
 
     public void rotate() {
         rotateTransition.setNode(this);
-        rotateTransition.setDuration(Duration.seconds(3));
+        rotateTransition.setDuration(Duration.seconds(4));
         rotateTransition.setByAngle(360);
         rotateTransition.setCycleCount(Animation.INDEFINITE);
+        rotateTransition.setInterpolator(javafx.animation.Interpolator.LINEAR);
         rotateTransition.play();
     }
 
