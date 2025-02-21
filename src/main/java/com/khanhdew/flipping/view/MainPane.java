@@ -165,16 +165,17 @@ public class MainPane extends BorderPane {
 //                    if(piece.getCurrentState()!=PieceState.EMPTY)
 //                    System.out.println("mouse entered" + piece);
 //                });
+
 //                piece.setOnMouseExited(e -> {
 //                    //TODO: Unhighlight surrounding pieces
 //                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
 //                    if(piece.getCurrentState()!=PieceState.EMPTY)
 //                        System.out.println("mouse exited" +piece);
 //                });
-                if((i == BOARD_ROW/2 && j == BOARD_COL/2)||(i == BOARD_ROW/2 - 1 && j == BOARD_COL/2 - 1)){
+                if ((i == BOARD_ROW / 2 && j == BOARD_COL / 2) || (i == BOARD_ROW / 2 - 1 && j == BOARD_COL / 2 - 1)) {
                     piece.setState(PieceState.BLACK);
                 }
-                if((i == BOARD_ROW/2 - 1 && j == BOARD_COL/2)||(i == BOARD_ROW/2 && j == BOARD_COL/2 - 1)){
+                if ((i == BOARD_ROW / 2 - 1 && j == BOARD_COL / 2) || (i == BOARD_ROW / 2 && j == BOARD_COL / 2 - 1)) {
                     piece.setState(PieceState.WHITE);
                 }
                 pieces.add(piece);
@@ -210,10 +211,25 @@ public class MainPane extends BorderPane {
 
         for (Piece piece : pieces) {
             piece.initCir(piece.getCurrentState());
-            if(matrix[piece.getRow()][piece.getCol()] == 3){
+            if (matrix[piece.getRow()][piece.getCol()] == 3) {
                 piece.setState(PieceState.HINT);
-            } else if(matrix[piece.getRow()][piece.getCol()] == 0){
+                piece.setOnMouseEntered(e -> {
+                    // get all pieces that will change
+                    ArrayList<Piece> changes = BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol());
+                    // highlight all pieces that will change
+                    highLightChangeablePieces(changes);
+                });
+                piece.setOnMouseExited(e -> {
+                    unHighLight();
+                });
+                piece.setOnMouseClicked(event -> unHighLight());
+            } else if (matrix[piece.getRow()][piece.getCol()] == 0) {
                 piece.setState(PieceState.EMPTY);
+            } else {
+                // clear listeners
+                piece.setOnMouseEntered(null);
+                piece.setOnMouseExited(null);
+                piece.setOnMouseClicked(null);
             }
         }
         long now = System.currentTimeMillis();
@@ -306,7 +322,7 @@ public class MainPane extends BorderPane {
             if (turn == 1) {
                 handleAI(p1);
                 if (mouse.x > 0 && mouse.y > 0) {
-                    if(!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
+                    if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
                         return;
                     // Only allow the user to move if it's not the AI's turn
                     if (move(mouse.getCol(), mouse.getRow(), turn)) {
@@ -321,7 +337,7 @@ public class MainPane extends BorderPane {
                 handleAI(p2);
                 if (mouse.x > 0 && mouse.y > 0) {
                     // Only allow the user to move if it's not the AI's turn
-                    if(!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
+                    if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
                         return;
                     if (move(mouse.getCol(), mouse.getRow(), turn)) {
                         turn = 1;
@@ -342,7 +358,7 @@ public class MainPane extends BorderPane {
     }
 
 
-    public void highlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
+    public void highLightChangeablePieces( ArrayList<Piece> changes) {
         //infinte loop
         FadeTransition ft = new FadeTransition(Duration.millis(100));
         ft.setFromValue(1.0);
@@ -353,22 +369,14 @@ public class MainPane extends BorderPane {
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol() && p.getCurrentState() != PieceState.EMPTY) {
-                    p.updateState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
-                    ft.setNode(p);
-                    ft.play();
+                    p.setOpacity(0.5);
                 }
             }
         }
     }
 
-    public void unhighlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
-        for (Piece piece : changes) {
-            for (Piece p : pieces) {
-                if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol()) {
-                    p.updateState(p.getLastState());
-                }
-            }
-        }
+    public void unHighLight() {
+        pieces.forEach(p -> p.setOpacity(1));
     }
 
     public void showScore() {
