@@ -40,7 +40,7 @@ public class WelcomePaneController implements Initializable {
     public ComboBox player2;
     public ComboBox languageOption;
     Connection connection = DbConnector.getInstance().getConnection();
-    private PlayerRegister playerRegister = new PlayerRegister();
+    private PlayerRegister playerRegister = PlayerRegister.getInstance();
     @FXML
     private TextField rowField;
 
