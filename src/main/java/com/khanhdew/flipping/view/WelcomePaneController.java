@@ -3,6 +3,7 @@ package com.khanhdew.flipping.view;
 import com.google.common.collect.BiMap;
 import com.khanhdew.flipping.utils.DbConnector;
 import com.khanhdew.flipping.utils.Language;
+import com.khanhdew.flipping.utils.PlayerRegister;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
@@ -39,6 +40,7 @@ public class WelcomePaneController implements Initializable {
     public ComboBox player2;
     public ComboBox languageOption;
     Connection connection = DbConnector.getInstance().getConnection();
+    private PlayerRegister playerRegister = new PlayerRegister();
     @FXML
     private TextField rowField;
 
@@ -138,12 +140,13 @@ public class WelcomePaneController implements Initializable {
     private void setLanguage(Language language) {
         this.language = language; // Cập nhật ngôn ngữ hiện tại
         languageMap = language.getLanguage(); // Cập nhật languageMap
+        playerRegister.setLanguage(language); // Cập nhật ngôn ngữ cho PlayerRegister
         // Cập nhật các thành phần giao diện người dùng
         player1.getItems().clear();
-        player1.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"),languageMap.get("minimaxai"));
+        player1.getItems().addAll(playerRegister.getPlayerTypes());
         player1.setValue(languageMap.get("human"));
         player2.getItems().clear();
-        player2.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"),languageMap.get("minimaxai"));
+        player2.getItems().addAll(playerRegister.getPlayerTypes());
         player2.setValue(languageMap.get("human"));
         alert.setTitle(languageMap.get("error"));
         alert.setHeaderText(languageMap.get("invalidInput"));

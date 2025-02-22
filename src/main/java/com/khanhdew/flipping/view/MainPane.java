@@ -72,28 +72,8 @@ public class MainPane extends BorderPane {
     }
 
     private void setPlayers(String player1Type, String player2Type) {
-        switch (player1Type) {
-            case "human":
-                p1 = new HumanPlayer(1, languageMap.get("player1"));
-                break;
-            case "easyai":
-                p1 = new EasyAI(1, languageMap.get("player1"));
-                break;
-            case "minimaxai":
-                p1 = new MinimaxAI(1, languageMap.get("player1"));
-                break;
-        }
-        switch (player2Type) {
-            case "human":
-                p2 = new HumanPlayer(2, languageMap.get("player2"));
-                break;
-            case "easyai":
-                p2 = new EasyAI(2, languageMap.get("player2"));
-                break;
-            case "minimaxai":
-                p2 = new MinimaxAI(2, languageMap.get("player1"));
-                break;
-        }
+        p1 = Player.createPlayer(1, languageMap.get("player1"), player1Type);
+        p2 = Player.createPlayer(2, languageMap.get("player2"), player2Type);
     }
 
     public void setPlayersName(String player1Name, String player2Name) {
@@ -267,39 +247,33 @@ public class MainPane extends BorderPane {
     }
 
     public void changePieceState(ArrayList<Piece> changes, int playerId) {
-//        for(Piece piece : changes){
-//            System.out.println(piece);
-//        }
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getCol() == piece.getCol() && p.getRow() == piece.getRow()) {
-                    // Tạo hiệu ứng lật
-                    ScaleTransition st1 = new ScaleTransition(Duration.millis(300), p);
-                    RotateTransition rt = new RotateTransition(Duration.millis(800), p);
-                    rt.setByAngle(360);
-                    rt.setCycleCount(1);
-                    rt.play();
-                    st1.setByX(-0.2);
-                    st1.setByY(-1);
-                    st1.setCycleCount(1);
+                    // Create single scale transition
+                    ScaleTransition st = new ScaleTransition(Duration.millis(400), p);
+                    st.setFromX(1.0);
+                    st.setFromY(1.0);
+                    st.setToX(0.2);
+                    st.setToY(0.2);
+                    st.setAutoReverse(true);
+                    st.setCycleCount(2);
+                    st.setInterpolator(Interpolator.EASE_BOTH);
+
+                    // Update matrix
                     matrix[p.row][p.col] = playerId;
-                    // Đặt hành động khi hiệu ứng hoàn tất
-                    st1.setOnFinished(e -> {
-                        p.setState(piece.getCurrentState());
-                        ScaleTransition st2 = new ScaleTransition(Duration.millis(300), p);
-                        st2.setByX(0.2);
-                        st2.setByY(1);
-                        st2.setCycleCount(1);
-                        st2.play();
-                    });
-                    st1.play();
+
+                    // Change piece state at the halfway point
+                    st.setOnFinished(e -> p.setState(piece.getCurrentState()));
+
+                    st.play();
                 }
             }
         }
     }
 
     public void manageTurn() {
-        if (!BoardHelper.canPlay(matrix, turn)) {
+        if (!BoardHelper.canPlay(matrix, turn) && !BoardHelper.canPlay(matrix, turn == 1 ? 2 : 1)) {
             setScore();
             Platform.runLater(() -> {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -317,7 +291,10 @@ public class MainPane extends BorderPane {
                 alert.showAndWait();
             });
             mouse.mouseClicked = false;
-        } else {
+        } else if(!BoardHelper.canPlay(matrix, turn)){
+            turn = (turn == 1) ? 2 : 1;
+        }
+        else {
             BoardHelper.hint(matrix, turn);
             if (turn == 1) {
                 handleAI(p1);
@@ -358,7 +335,7 @@ public class MainPane extends BorderPane {
     }
 
 
-    public void highLightChangeablePieces( ArrayList<Piece> changes) {
+    public void highLightChangeablePieces(ArrayList<Piece> changes) {
         //infinte loop
         FadeTransition ft = new FadeTransition(Duration.millis(100));
         ft.setFromValue(1.0);

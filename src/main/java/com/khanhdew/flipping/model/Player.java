@@ -10,6 +10,19 @@ public abstract class Player {
         this.score = 0;
     }
 
+    public static Player createPlayer(int playerId, String name, String type) {
+        switch (type) {
+            case "easyai":
+                return new EasyAI(playerId, name);
+            case "human":
+                return new HumanPlayer(playerId, name);
+            case "minimaxai":
+                return new MinimaxAI(playerId, name);
+            default:
+                return null;
+        }
+    }
+
     public int getPlayerId() {
         return playerId;
     }
