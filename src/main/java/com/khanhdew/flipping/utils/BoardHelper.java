@@ -64,12 +64,12 @@ public class BoardHelper {
         }
     }
 
-    public static boolean canPlay(int[][] board, int playerId) {
-        return !getAvailableMoves(board, playerId).isEmpty();
+    public static boolean canPlay(int[][] board, int turn) {
+        return !getAvailableMoves(board, turn).isEmpty();
     }
 
-//    public static ArrayList<Piece> getAvailableMoves(int[][] board, int playerId) {
-//        PieceState player = playerId == 1 ? PieceState.BLACK : PieceState.WHITE;
+//    public static ArrayList<Piece> getAvailableMoves(int[][] board, int turn) {
+//        PieceState player = turn == 1 ? PieceState.BLACK : PieceState.WHITE;
 //        ArrayList<Piece> moves = new ArrayList<>();
 //        for (int i = 0; i < board.length; i++)
 //            for (int j = 0; j < board[0].length; j++)
@@ -77,41 +77,36 @@ public class BoardHelper {
 //                    moves.add(new Piece(j, i, player));
 //        return moves;
 //    }
-    public static ArrayList<Piece> getAvailableMoves(int[][] board, int playerId) {
-        PieceState player = playerId == 1 ? PieceState.BLACK : PieceState.WHITE;
+    public static ArrayList<Piece> getAvailableMoves(int[][] board, int turn) {
+        PieceState player = turn == 1 ? PieceState.BLACK : PieceState.WHITE;
         ArrayList<Piece> moves = new ArrayList<>();
 
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
-                if (board[i][j] != 1 && board[i][j] != 2) {  // Empty cell
+                if (board[i][j] != 1 && board[i][j] != 2) {
                     // Check if this move would flip any opponent's pieces
-                    if (isLegalMove(board, playerId, i, j)) {
+                    if (isLegalMove(board, turn, i, j)) {
                         moves.add(new Piece(i, j, player));
                     }
                 }
             }
         }
-
-//        for (int i = 0; i < board.length; i++)
-//            for (int j = 0; j < board[0].length; j++)
-//                if (board[i][j] == 0)
-//                    moves.add(new Piece(j, i, player));
         return moves;
     }
 
-    public static boolean isLegalMove(int[][] board, int playerId, int row, int col) {
-        return !getPieceChangeForEachMove(board, playerId, row, col).isEmpty();
+    public static boolean isLegalMove(int[][] board, int turn, int row, int col) {
+        return !getPieceChangeForEachMove(board, turn, row, col).isEmpty();
     }
 
 
-    //    public static ArrayList<Piece> getPieceChangeForEachMove(int[][] board, int playerId, int row, int col) {
+    //    public static ArrayList<Piece> getPieceChangeForEachMove(int[][] board, int turn, int row, int col) {
 //        int opponent;
-//        if (playerId == 1)
+//        if (turn == 1)
 //            opponent = 2;
 //        else
 //            opponent = 1;
 //        PieceState playerState;
-//        if (playerId == 1)
+//        if (turn == 1)
 //            playerState = PieceState.BLACK;
 //        else
 //            playerState = PieceState.WHITE;
@@ -246,13 +241,10 @@ public class BoardHelper {
         return score;
     }
 
-    public static ArrayList<Piece> getPieceChangeForEachMove(int[][] board, int playerId, int row, int col) {
-        int opponent = (playerId == 1) ? 2 : 1;
-        PieceState playerState = (playerId == 1) ? PieceState.BLACK : PieceState.WHITE;
+    public static ArrayList<Piece> getPieceChangeForEachMove(int[][] board, int turn, int row, int col) {
+        int opponent = (turn == 1) ? 2 : 1;
+        PieceState playerState = (turn == 1) ? PieceState.BLACK : PieceState.WHITE;
         ArrayList<Piece> changes = new ArrayList<>();
-
-        // All 8 directions: horizontal, vertical, and diagonal
-
 
         for (int[] direction : directions) {
             int x = row + direction[0];
@@ -267,7 +259,7 @@ public class BoardHelper {
             }
 
             // Check if we found a valid line (ends with player's piece)
-            if (x >= 0 && x < board.length && y >= 0 && y < board[0].length && board[x][y] == playerId && !tempChanges.isEmpty()) {
+            if (x >= 0 && x < board.length && y >= 0 && y < board[0].length && board[x][y] == turn && !tempChanges.isEmpty()) {
                 changes.addAll(tempChanges);
             }
         }
@@ -275,14 +267,14 @@ public class BoardHelper {
         return changes;
     }
 
-    public static void hint(int[][] board, int playerId) {
+    public static void hint(int[][] board, int turn) {
         // clear last hints
         for (int i = 0; i < board.length; i++)
             for (int j = 0; j < board[0].length; j++)
                 if (board[i][j] == 3)
                     board[i][j] = 0;
 
-        ArrayList<Piece> moves = getAvailableMoves(board, playerId);
+        ArrayList<Piece> moves = getAvailableMoves(board, turn);
         if (moves.isEmpty()) {
             return;
         }

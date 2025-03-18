@@ -27,6 +27,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 import org.kordamp.bootstrapfx.BootstrapFX;
 
@@ -54,8 +55,9 @@ public class MainPane extends BorderPane {
     Player p1;
     Player p2;
     int turn = 1;
-    private long lastMoveTime = 0;
+    private long lastMoveTime = System.currentTimeMillis();
     private final boolean hasAImoved = false;
+    private final int TIME_LIMIT_EACH_TURN = 10;
 
 
     private ArrayList<Piece> pieces = new ArrayList<>();
@@ -212,12 +214,12 @@ public class MainPane extends BorderPane {
                 piece.setOnMouseClicked(null);
             }
         }
+        // slow down the game
         long now = System.currentTimeMillis();
         if (now - lastMoveTime > 600) {
             if (mouse.mouseClicked) {
                 manageTurn();
             }
-            lastMoveTime = now;
         }
     }
 
@@ -253,12 +255,25 @@ public class MainPane extends BorderPane {
                     // Create single scale transition
                     ScaleTransition st = new ScaleTransition(Duration.millis(400), p);
                     st.setFromX(1.0);
-                    st.setFromY(1.0);
                     st.setToX(0.2);
-                    st.setToY(0.2);
                     st.setAutoReverse(true);
-                    st.setCycleCount(2);
+                    st.setCycleCount(1);
                     st.setInterpolator(Interpolator.EASE_BOTH);
+
+                    ScaleTransition st2 = new ScaleTransition(Duration.millis(400), p);
+                    st.setFromX(0.2);
+                    st.setToX(1.0);
+                    st.setAutoReverse(true);
+                    st.setCycleCount(1);
+                    st.setInterpolator(Interpolator.EASE_BOTH);
+
+                    // Create a rotation transition for 3D effect
+                    RotateTransition rt = new RotateTransition(Duration.millis(400), p);
+                    rt.setFromAngle(0);
+                    rt.setToAngle(180);
+                    rt.setAxis(Rotate.Y_AXIS);
+                    rt.setCycleCount(1);
+                    rt.setInterpolator(Interpolator.LINEAR);
 
                     // Update matrix
                     matrix[p.row][p.col] = playerId;
@@ -266,65 +281,95 @@ public class MainPane extends BorderPane {
                     // Change piece state at the halfway point
                     st.setOnFinished(e -> p.setState(piece.getCurrentState()));
 
+                    // Play both transitions
                     st.play();
+                    rt.play();
+                    st2.play();
                 }
             }
         }
     }
 
     public void manageTurn() {
+        // Game over condition - no player can make a move
         if (!BoardHelper.canPlay(matrix, turn) && !BoardHelper.canPlay(matrix, turn == 1 ? 2 : 1)) {
-            setScore();
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle(languageMap.get("gameOver"));
-                if (p1.getScore() > p2.getScore()) {
-                    alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
-                    alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
-                } else if (p1.getScore() < p2.getScore()) {
-                    alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
-                    alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
-                } else {
-                    alert.setHeaderText(languageMap.get("draw"));
-                    alert.setContentText(languageMap.get("drawContext") + p1.getScore());
-                }
-                alert.showAndWait();
-            });
-            mouse.mouseClicked = false;
-        } else if(!BoardHelper.canPlay(matrix, turn)){
-            turn = (turn == 1) ? 2 : 1;
+            handleGameOver();
+            return;
         }
-        else {
-            BoardHelper.hint(matrix, turn);
-            if (turn == 1) {
-                handleAI(p1);
-                if (mouse.x > 0 && mouse.y > 0) {
-                    if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
-                        return;
-                    // Only allow the user to move if it's not the AI's turn
-                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                        turn = 2;
-//                        manageTurn();
-                        setScore();
-                        showScore();
-                    }
-                }
 
+        // Current player cannot play, switch turns
+        if (!BoardHelper.canPlay(matrix, turn)) {
+            turn = (turn == 1) ? 2 : 1;
+            return;
+        }
+
+        // Show available moves for current player
+        BoardHelper.hint(matrix, turn);
+        long now = System.currentTimeMillis();
+        // Show Timer
+
+
+        // Handle timeout - make automatic move if time limit exceeded
+        if (now - lastMoveTime > TIME_LIMIT_EACH_TURN * 1000) {
+            makeTimeoutMove(now);
+            return;
+        }
+
+        // Handle AI move if current player is AI
+        Player currentPlayer = (turn == 1) ? p1 : p2;
+        handleAI(currentPlayer);
+
+        // Handle human player move if mouse click detected
+        if (mouse.x > 0 && mouse.y > 0) {
+            handleHumanMove(now);
+        }
+    }
+
+    private void handleGameOver() {
+        setScore();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(languageMap.get("gameOver"));
+
+            if (p1.getScore() > p2.getScore()) {
+                alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
+                alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
+            } else if (p1.getScore() < p2.getScore()) {
+                alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
+                alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
             } else {
-                handleAI(p2);
-                if (mouse.x > 0 && mouse.y > 0) {
-                    // Only allow the user to move if it's not the AI's turn
-                    if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol()))
-                        return;
-                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                        turn = 1;
-//                        manageTurn();
-                        setScore();
-                        showScore();
-                    }
-                }
-
+                alert.setHeaderText(languageMap.get("draw"));
+                alert.setContentText(languageMap.get("drawContext") + p1.getScore());
             }
+
+            alert.showAndWait();
+        });
+        mouse.mouseClicked = false;
+    }
+
+    private void makeTimeoutMove(long now) {
+        ArrayList<Piece> availableMoves = BoardHelper.getAvailableMoves(matrix, turn);
+        if (!availableMoves.isEmpty()) {
+            Piece randomMove = availableMoves.get(0);
+            if (move(randomMove.getCol(), randomMove.getRow(), turn)) {
+                turn = (turn == 1) ? 2 : 1;
+                setScore();
+                showScore();
+                lastMoveTime = now;
+            }
+        }
+    }
+
+    private void handleHumanMove(long now) {
+        if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol())) {
+            return;
+        }
+
+        if (move(mouse.getCol(), mouse.getRow(), turn)) {
+            turn = (turn == 1) ? 2 : 1;
+            setScore();
+            showScore();
+            lastMoveTime = now;
         }
     }
 

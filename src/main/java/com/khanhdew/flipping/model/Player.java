@@ -4,10 +4,10 @@ public abstract class Player {
     private int score;
     private int playerId;
     private String name;
-
     public Player(int playerId, String name) {
         this.playerId = playerId;
         this.score = 0;
+        this.name = name;
     }
 
     public static Player createPlayer(int playerId, String name, String type) {
