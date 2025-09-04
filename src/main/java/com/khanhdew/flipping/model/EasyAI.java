@@ -12,17 +12,19 @@ public class EasyAI extends AI {
         this.random = new Random();
     }
 
+    public Piece bestMove(List<Piece> pieces){
+        int index = random.nextInt(pieces.size());
+        return pieces.get(index);
+    }
+
     public Piece makeMove(int[][] board) {
         List<Piece> availableMoves = findAvailableMoves(board);
-        System.out.println("Available moves: " + availableMoves.size());
         if (availableMoves.isEmpty()) {
             // Handle the situation when there are no available moves
             // This could be returning null, throwing an exception, etc.
             return null;
         }
-        Piece chosenMove = availableMoves.get(random.nextInt(availableMoves.size()));
-        System.out.println("Chosen move: " + chosenMove.row + ", " + chosenMove.col);
-        return chosenMove;
+        return bestMove(availableMoves);
     }
 
 }

@@ -1,6 +1,8 @@
 package com.khanhdew.flipping;
 
 
+import com.khanhdew.flipping.utils.Language;
+import com.khanhdew.flipping.utils.PlayerRegister;
 import com.khanhdew.flipping.view.WelcomePaneController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,7 +19,8 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         stage.setTitle("Flipping");
-
+        PlayerRegister playerRegister = new PlayerRegister();
+        playerRegister.setLanguage(Language.ENGLISH);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("welcomepane.fxml"));
         Parent welcomePane = loader.load();
 

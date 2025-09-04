@@ -4,6 +4,7 @@ import com.google.common.collect.BiMap;
 import com.khanhdew.flipping.utils.BoardHelper;
 import com.khanhdew.flipping.utils.DAO;
 import com.khanhdew.flipping.utils.Language;
+import com.khanhdew.flipping.utils.PlayerRegister;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -26,12 +27,13 @@ public class ButtonPaneController {
     public Button saveGame;
     public Button loadSavedGame;
     Language language = Language.ENGLISH;
-    BiMap<String, String> languageMap = language.getLanguage();
+    BiMap<String, String> languageMap;
     @FXML
     public ComboBox player1;
     @FXML
     public ComboBox player2;
     MainPane mainPane;
+    PlayerRegister playerRegister = PlayerRegister.getInstance();
 
     public void setGamePane(MainPane mainPane) {
         this.mainPane = mainPane;
@@ -50,10 +52,10 @@ public class ButtonPaneController {
         colLabel.setText(languageMap.get("col"));
         newGame.setText(languageMap.get("newgame"));
         player1Label.setText(languageMap.get("player1"));
-        player1.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player1.getItems().addAll(playerRegister.getPlayerTypes());
         player1.setValue(languageMap.get("human"));
         player2Label.setText(languageMap.get("player2"));
-        player2.getItems().addAll(languageMap.get("human"), languageMap.get("easyai"));
+        player2.getItems().addAll(playerRegister.getPlayerTypes());
         player2.setValue(languageMap.get("human"));
         undo.setText(languageMap.get("undo"));
         setting.setText(languageMap.get("setting"));
@@ -97,6 +99,10 @@ public class ButtonPaneController {
 //                }
             DAO.loadLastSave(mainPane);
         });
+    }
+
+    public void setPlayerRegister(PlayerRegister playerRegister){
+        this.playerRegister = playerRegister;
     }
 
     @FXML

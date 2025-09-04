@@ -14,7 +14,6 @@ public class Mouse implements EventHandler<MouseEvent> {
         this.x = (int) mouseEvent.getX();
         this.y = (int) mouseEvent.getY();
         mouseClicked = true;
-//        System.out.println("X: " + x / Board.getSquareSize() + ", Y: " + y / Board.getSquareSize());
     }
 
     public int getCol() {

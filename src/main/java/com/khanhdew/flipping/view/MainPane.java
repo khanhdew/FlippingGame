@@ -27,6 +27,7 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Text;
+import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 import org.kordamp.bootstrapfx.BootstrapFX;
 
@@ -54,8 +55,9 @@ public class MainPane extends BorderPane {
     Player p1;
     Player p2;
     int turn = 1;
-    private long lastMoveTime = 0;
+    private long lastMoveTime = System.currentTimeMillis();
     private final boolean hasAImoved = false;
+    private final int TIME_LIMIT_EACH_TURN = 10;
 
 
     private ArrayList<Piece> pieces = new ArrayList<>();
@@ -72,22 +74,8 @@ public class MainPane extends BorderPane {
     }
 
     private void setPlayers(String player1Type, String player2Type) {
-        switch (player1Type) {
-            case "human":
-                p1 = new HumanPlayer(1, languageMap.get("player1"));
-                break;
-            case "easyai":
-                p1 = new EasyAI(1, languageMap.get("player1"));
-                break;
-        }
-        switch (player2Type) {
-            case "human":
-                p2 = new HumanPlayer(1, languageMap.get("player2"));
-                break;
-            case "easyai":
-                p2 = new EasyAI(1, languageMap.get("player2"));
-                break;
-        }
+        p1 = Player.createPlayer(1, languageMap.get("player1"), player1Type);
+        p2 = Player.createPlayer(2, languageMap.get("player2"), player2Type);
     }
 
     public void setPlayersName(String player1Name, String player2Name) {
@@ -155,19 +143,27 @@ public class MainPane extends BorderPane {
                 Piece piece = new Piece(i, j, PieceState.EMPTY);
 //                piece.setOnMouseClicked(e -> {
 //                    //TODO: Highlight surrounding pieces
-////                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
-////                    if(piece.getCurrentState()!=PieceState.EMPTY)
+//                    highlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                    if(piece.getCurrentState()!=PieceState.EMPTY)
 //                    System.out.println("mouse entered" + piece);
 //                });
+
 //                piece.setOnMouseExited(e -> {
 //                    //TODO: Unhighlight surrounding pieces
-////                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
+//                    unhighlightSurroundingPieces(getTurn(), BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol()));
 //                    if(piece.getCurrentState()!=PieceState.EMPTY)
 //                        System.out.println("mouse exited" +piece);
 //                });
+                if ((i == BOARD_ROW / 2 && j == BOARD_COL / 2) || (i == BOARD_ROW / 2 - 1 && j == BOARD_COL / 2 - 1)) {
+                    piece.setState(PieceState.BLACK);
+                }
+                if ((i == BOARD_ROW / 2 - 1 && j == BOARD_COL / 2) || (i == BOARD_ROW / 2 && j == BOARD_COL / 2 - 1)) {
+                    piece.setState(PieceState.WHITE);
+                }
                 pieces.add(piece);
             }
         }
+
 //        for (Piece piece : pieces) {
 //            if (piece.col == 0 || (piece.row == BOARD_ROW - 1 && piece.col != BOARD_COL - 1))
 //                piece.setState(PieceState.BLACK);
@@ -197,13 +193,33 @@ public class MainPane extends BorderPane {
 
         for (Piece piece : pieces) {
             piece.initCir(piece.getCurrentState());
+            if (matrix[piece.getRow()][piece.getCol()] == 3) {
+                piece.setState(PieceState.HINT);
+                piece.setOnMouseEntered(e -> {
+                    // get all pieces that will change
+                    ArrayList<Piece> changes = BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol());
+                    // highlight all pieces that will change
+                    highLightChangeablePieces(changes);
+                });
+                piece.setOnMouseExited(e -> {
+                    unHighLight();
+                });
+                piece.setOnMouseClicked(event -> unHighLight());
+            } else if (matrix[piece.getRow()][piece.getCol()] == 0) {
+                piece.setState(PieceState.EMPTY);
+            } else {
+                // clear listeners
+                piece.setOnMouseEntered(null);
+                piece.setOnMouseExited(null);
+                piece.setOnMouseClicked(null);
+            }
         }
+        // slow down the game
         long now = System.currentTimeMillis();
         if (now - lastMoveTime > 600) {
             if (mouse.mouseClicked) {
                 manageTurn();
             }
-            lastMoveTime = now;
         }
     }
 
@@ -214,7 +230,7 @@ public class MainPane extends BorderPane {
     public boolean move(int col, int row, int playerId) {
         for (Piece piece : pieces) {
             if (piece.getCol() == col && piece.getRow() == row) {
-                if (piece.getCurrentState() == PieceState.EMPTY) {
+                if (piece.getCurrentState() == PieceState.EMPTY || piece.getCurrentState() == PieceState.HINT) {
                     FadeTransition ft = new FadeTransition(Duration.millis(400), piece);
                     ft.setFromValue(1.0);
                     ft.setToValue(0.5);
@@ -233,86 +249,127 @@ public class MainPane extends BorderPane {
     }
 
     public void changePieceState(ArrayList<Piece> changes, int playerId) {
-//        for(Piece piece : changes){
-//            System.out.println(piece);
-//        }
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getCol() == piece.getCol() && p.getRow() == piece.getRow()) {
-                    // Tạo hiệu ứng lật
-                    ScaleTransition st1 = new ScaleTransition(Duration.millis(300), p);
-                    RotateTransition rt = new RotateTransition(Duration.millis(800), p);
-                    rt.setByAngle(360);
+                    // Create single scale transition
+                    ScaleTransition st = new ScaleTransition(Duration.millis(400), p);
+                    st.setFromX(1.0);
+                    st.setToX(0.2);
+                    st.setAutoReverse(true);
+                    st.setCycleCount(1);
+                    st.setInterpolator(Interpolator.EASE_BOTH);
+
+                    ScaleTransition st2 = new ScaleTransition(Duration.millis(400), p);
+                    st.setFromX(0.2);
+                    st.setToX(1.0);
+                    st.setAutoReverse(true);
+                    st.setCycleCount(1);
+                    st.setInterpolator(Interpolator.EASE_BOTH);
+
+                    // Create a rotation transition for 3D effect
+                    RotateTransition rt = new RotateTransition(Duration.millis(400), p);
+                    rt.setFromAngle(0);
+                    rt.setToAngle(180);
+                    rt.setAxis(Rotate.Y_AXIS);
                     rt.setCycleCount(1);
-                    rt.play();
-                    st1.setByX(-0.2);
-                    st1.setByY(-1);
-                    st1.setCycleCount(1);
+                    rt.setInterpolator(Interpolator.LINEAR);
+
+                    // Update matrix
                     matrix[p.row][p.col] = playerId;
-                    // Đặt hành động khi hiệu ứng hoàn tất
-                    st1.setOnFinished(e -> {
-                        p.setState(piece.getCurrentState());
-                        ScaleTransition st2 = new ScaleTransition(Duration.millis(300), p);
-                        st2.setByX(0.2);
-                        st2.setByY(1);
-                        st2.setCycleCount(1);
-                        st2.play();
-                    });
-                    st1.play();
+
+                    // Change piece state at the halfway point
+                    st.setOnFinished(e -> p.setState(piece.getCurrentState()));
+
+                    // Play both transitions
+                    st.play();
+                    rt.play();
+                    st2.play();
                 }
             }
         }
     }
 
     public void manageTurn() {
-        if (!BoardHelper.canPlay(matrix)) {
-            setScore();
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle(languageMap.get("gameOver"));
-                if (p1.getScore() > p2.getScore()) {
-                    alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
-                    alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
-                } else if (p1.getScore() < p2.getScore()) {
-                    alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
-                    alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
-                } else {
-                    alert.setHeaderText(languageMap.get("draw"));
-                    alert.setContentText(languageMap.get("drawContext") + p1.getScore());
-                }
-                alert.showAndWait();
-            });
-            mouse.mouseClicked = false;
-        } else {
-            if (turn == 1) {
-                handleAI(p1);
+        // Game over condition - no player can make a move
+        if (!BoardHelper.canPlay(matrix, turn) && !BoardHelper.canPlay(matrix, turn == 1 ? 2 : 1)) {
+            handleGameOver();
+            return;
+        }
 
-                if (mouse.x > 0 && mouse.y > 0) {
-                    // Only allow the user to move if it's not the AI's turn
-                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                        turn = 2;
-//                        manageTurn();
-                        setScore();
-                        showScore();
-                    }
-                }
+        // Current player cannot play, switch turns
+        if (!BoardHelper.canPlay(matrix, turn)) {
+            turn = (turn == 1) ? 2 : 1;
+            return;
+        }
 
+        // Show available moves for current player
+        BoardHelper.hint(matrix, turn);
+        long now = System.currentTimeMillis();
+        // Show Timer
+
+
+        // Handle timeout - make automatic move if time limit exceeded
+        if (now - lastMoveTime > TIME_LIMIT_EACH_TURN * 1000) {
+            makeTimeoutMove(now);
+            return;
+        }
+
+        // Handle AI move if current player is AI
+        Player currentPlayer = (turn == 1) ? p1 : p2;
+        handleAI(currentPlayer);
+
+        // Handle human player move if mouse click detected
+        if (mouse.x > 0 && mouse.y > 0) {
+            handleHumanMove(now);
+        }
+    }
+
+    private void handleGameOver() {
+        setScore();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(languageMap.get("gameOver"));
+
+            if (p1.getScore() > p2.getScore()) {
+                alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
+                alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
+            } else if (p1.getScore() < p2.getScore()) {
+                alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
+                alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
             } else {
-                handleAI(p2);
-
-                if (mouse.x > 0 && mouse.y > 0) {
-                    // Only allow the user to move if it's not the AI's turn
-                    if (move(mouse.getCol(), mouse.getRow(), turn)) {
-                        turn = 1;
-//                        manageTurn();
-                        setScore();
-                        showScore();
-                    }
-                }
-
+                alert.setHeaderText(languageMap.get("draw"));
+                alert.setContentText(languageMap.get("drawContext") + p1.getScore());
             }
 
-//            mouse.clear();
+            alert.showAndWait();
+        });
+        mouse.mouseClicked = false;
+    }
+
+    private void makeTimeoutMove(long now) {
+        ArrayList<Piece> availableMoves = BoardHelper.getAvailableMoves(matrix, turn);
+        if (!availableMoves.isEmpty()) {
+            Piece randomMove = availableMoves.get(0);
+            if (move(randomMove.getCol(), randomMove.getRow(), turn)) {
+                turn = (turn == 1) ? 2 : 1;
+                setScore();
+                showScore();
+                lastMoveTime = now;
+            }
+        }
+    }
+
+    private void handleHumanMove(long now) {
+        if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol())) {
+            return;
+        }
+
+        if (move(mouse.getCol(), mouse.getRow(), turn)) {
+            turn = (turn == 1) ? 2 : 1;
+            setScore();
+            showScore();
+            lastMoveTime = now;
         }
     }
 
@@ -323,7 +380,7 @@ public class MainPane extends BorderPane {
     }
 
 
-    public void highlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
+    public void highLightChangeablePieces(ArrayList<Piece> changes) {
         //infinte loop
         FadeTransition ft = new FadeTransition(Duration.millis(100));
         ft.setFromValue(1.0);
@@ -334,22 +391,14 @@ public class MainPane extends BorderPane {
         for (Piece piece : changes) {
             for (Piece p : pieces) {
                 if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol() && p.getCurrentState() != PieceState.EMPTY) {
-                    p.updateState(playerId == 1 ? PieceState.BLACK : PieceState.WHITE);
-                    ft.setNode(p);
-                    ft.play();
+                    p.setOpacity(0.5);
                 }
             }
         }
     }
 
-    public void unhighlightSurroundingPieces(int playerId, ArrayList<Piece> changes) {
-        for (Piece piece : changes) {
-            for (Piece p : pieces) {
-                if (p.getRow() == piece.getRow() && p.getCol() == piece.getCol()) {
-                    p.updateState(p.getLastState());
-                }
-            }
-        }
+    public void unHighLight() {
+        pieces.forEach(p -> p.setOpacity(1));
     }
 
     public void showScore() {
@@ -585,7 +634,7 @@ public class MainPane extends BorderPane {
 
     }
 
-    public void loadGame(MainPane temp){
+    public void loadGame(MainPane temp) {
         int rows = temp.getMatrix().length;
         int cols = temp.getMatrix()[0].length;
         setBoard(rows, cols);
