@@ -43,6 +43,6 @@ Contributions are welcome. Please open an issue to discuss your ideas before mak
 This project is open source and available under the [GNU License](LICENSE).
 
 ## Sponsor
-![IntelliJ IDEA](https://www.jetbrains.com/idea/img/idea-edu.svg)
+![Jetbrains Edu](https://www.jetbrains.com/favicon.ico)
 <a href="https://1password.com/"><img alt="image" height="auto" src="src/main/resources/assets/img/1password-8-seeklogo.svg" width="75"/>
 </a>
