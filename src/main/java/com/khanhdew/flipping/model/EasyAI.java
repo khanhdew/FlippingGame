@@ -1,5 +1,7 @@
 package com.khanhdew.flipping.model;
 
+import com.khanhdew.flipping.utils.BoardHelper;
+
 import java.util.List;
 import java.util.Random;
 
@@ -12,19 +14,26 @@ public class EasyAI extends AI {
         this.random = new Random();
     }
 
-    public Piece bestMove(List<Piece> pieces){
-        int index = random.nextInt(pieces.size());
+    public Piece bestMove(List<Piece> pieces, int[][] board) {
+        int index = 0;
+        int maxScore = Integer.MIN_VALUE;
+        for (int i = 0; i < pieces.size(); i++) {
+            Piece piece = pieces.get(i);
+            int score = BoardHelper.getPieceChangeForEachMove(board, getPlayerId(), piece.getRow(), piece.getRow()).size();
+            if (score > maxScore) {
+                maxScore = score;
+                index = i;
+            }
+        }
         return pieces.get(index);
     }
 
     public Piece makeMove(int[][] board) {
         List<Piece> availableMoves = findAvailableMoves(board);
         if (availableMoves.isEmpty()) {
-            // Handle the situation when there are no available moves
-            // This could be returning null, throwing an exception, etc.
             return null;
         }
-        return bestMove(availableMoves);
+        return bestMove(availableMoves, board);
     }
 
 }
