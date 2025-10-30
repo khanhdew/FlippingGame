@@ -13,8 +13,8 @@ public class MinimaxAI extends AI {
     // Các hằng số để điều chỉnh tầm quan trọng của các yếu tố khác nhau trong hàm đánh giá
     private static final int CORNER_BONUS = 100;
     private static final int STABLE_PIECE_BONUS = 20;
-    private static final int MOBILITY_WEIGHT = 10; // Ưu tiên số lượng nước đi
-    private static final int PIECE_DIFFERENCE_WEIGHT = 15; // Ưu tiên số quân cờ
+    private static final int MOBILITY_WEIGHT = 10;
+    private static final int PIECE_DIFFERENCE_WEIGHT = 15;
 
     public MinimaxAI(int id, String name) {
         super(id, name);
@@ -164,23 +164,9 @@ public class MinimaxAI extends AI {
     }
 
 
-    //*** QUAN TRỌNG: Sửa đổi hàm này để trả về danh sách các NƯỚC ĐI HỢP LỆ THỰC SỰ ***/
     private List<Piece> findLegalMoves(int[][] board, int playerId) {
       return BoardHelper.getAvailableMoves(board,playerId);
     }
 
-    // Phiên bản khác của hàm findAvailableMoves, sử dụng khi đánh giá bàn cờ
-    @Override
-    public ArrayList<Piece> findAvailableMoves(int[][] board) {
-        ArrayList<Piece> moves = new ArrayList<>();
-        for(int i = 0; i < board.length; i++) {
-            for(int j = 0; j < board[0].length; j++) {
-                if(board[i][j] == 0) {
-                    moves.add(new Piece(i, j, PieceState.EMPTY));
-                }
-            }
-        }
-        return moves;
-    }
 
 }

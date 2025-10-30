@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MainPane extends BorderPane {
@@ -54,10 +56,11 @@ public class MainPane extends BorderPane {
 
     Player p1;
     Player p2;
-    int turn = 1;
+    volatile int turn = 1;
     private long lastMoveTime = System.currentTimeMillis();
     private final boolean hasAImoved = false;
     private final int TIME_LIMIT_EACH_TURN = 10;
+    private final int COOLDOWN = 600;
 
 
     private ArrayList<Piece> pieces = new ArrayList<>();
@@ -87,17 +90,15 @@ public class MainPane extends BorderPane {
         board = new Board(row, col);
         matrix = new int[Board.getMaxRow()][Board.getMaxCol()];
         calDimension();
-
+        showTimer();
         scorePane = new BorderPane();
         Scene scoreScene = new Scene(scorePane, 300, HEIGHT);
         scoreScene.setFill(Color.BLACK);
         scorePane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
+//        scorePane.setCenter(timerPane);
         gamePane = new BorderPane();
-        Scene gameScene = new Scene(gamePane, 800, HEIGHT);
-
 
         gamePane.addEventHandler(MouseEvent.MOUSE_CLICKED, mouse);
-
         //draw MainPane
         c1 = new Canvas(800, HEIGHT);
         Board.draw(c1.getGraphicsContext2D());
@@ -182,15 +183,63 @@ public class MainPane extends BorderPane {
         for (Piece piece : pieces) {
             gamePane.getChildren().add(piece);
         }
-        p1.setScore(0);
-        p2.setScore(0);
+        p1.reset();
+        p2.reset();
         turn = 1;
         mouse.clear();
         mouse.mouseClicked = true;
+        setTimer();
+    }
+
+    private final HBox timerPane = new HBox(2);
+
+    Timer timer = new Timer();
+
+    private void showTimer() {
+        setTimer();
+        new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+
+                timerPane.setAlignment(Pos.CENTER);
+                timerPane.getChildren().clear(); // Clear previous timer texts
+                Text timer1 = new Text(timeConvert(p1.getTime()));
+                timer1.setStyle("-fx-font: 24 arial;" +
+                        "-fx-font-weight:bolder;" +
+                        "-fx-fill: black;");
+                Text timer2 = new Text(timeConvert(p2.getTime()));
+                timer2.setStyle("-fx-font: 24 arial;" +
+                        "-fx-font-weight:bolder;" +
+                        "-fx-fill: black;");
+                timerPane.getChildren().addAll(timer1, timer2);
+            }
+        }.start();
+    }
+
+    private void setTimer() {
+        // Cancel any existing timer to prevent multiple concurrent timer tasks
+        if (timer != null) {
+            timer.cancel();
+            timer = new Timer();
+        }
+
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (turn == 1) {
+                    p1.tick();
+                } else {
+                    p2.tick();
+                }
+                if (p1.getTime() <= 0 || p2.getTime() <= 0) {
+                    handleGameOver();
+                }
+            }
+        }, 1000, 1000);
     }
 
     public void update() {
-
+        // set player timer
         for (Piece piece : pieces) {
             piece.initCir(piece.getCurrentState());
             if (matrix[piece.getRow()][piece.getCol()] == 3) {
@@ -216,7 +265,7 @@ public class MainPane extends BorderPane {
         }
         // slow down the game
         long now = System.currentTimeMillis();
-        if (now - lastMoveTime > 600) {
+        if (now - lastMoveTime > COOLDOWN) {
             if (mouse.mouseClicked) {
                 manageTurn();
             }
@@ -297,6 +346,12 @@ public class MainPane extends BorderPane {
             return;
         }
 
+        // Game over condition - player time out
+        if (p1.getTime() <= 0 || p2.getTime() <= 0) {
+            handleGameOver();
+            return;
+        }
+
         // Current player cannot play, switch turns
         if (!BoardHelper.canPlay(matrix, turn)) {
             turn = (turn == 1) ? 2 : 1;
@@ -309,11 +364,11 @@ public class MainPane extends BorderPane {
         // Show Timer
 
 
-        // Handle timeout - make automatic move if time limit exceeded
-        if (now - lastMoveTime > TIME_LIMIT_EACH_TURN * 1000) {
-            makeTimeoutMove(now);
-            return;
-        }
+//        // Handle timeout - make automatic move if time limit exceeded
+//        if (now - lastMoveTime > TIME_LIMIT_EACH_TURN * 1000) {
+//            makeTimeoutMove(now);
+//            return;
+//        }
 
         // Handle AI move if current player is AI
         Player currentPlayer = (turn == 1) ? p1 : p2;
@@ -327,6 +382,7 @@ public class MainPane extends BorderPane {
 
     private void handleGameOver() {
         setScore();
+        timer.cancel();
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle(languageMap.get("gameOver"));
@@ -413,7 +469,7 @@ public class MainPane extends BorderPane {
         ft.setToValue(0.5);
         ft.setCycleCount(Animation.INDEFINITE);
         ft.setAutoReverse(true);
-
+        VBox vBox = new VBox(2);
         HBox pane = new HBox(3);
 
         //Circle
@@ -476,8 +532,16 @@ public class MainPane extends BorderPane {
         pane.setPadding(new Insets(-100, 10, 10, 10));
         pane.setSpacing(20);
         pane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-        scorePane.setTop(pane);
 
+        vBox.getChildren().addAll(pane, timerPane);
+        scorePane.setTop(vBox);
+    }
+
+
+    private String timeConvert(long time) {
+        long minutes = (time / 1000) / 60;
+        int seconds = (int) ((time / 1000) % 60);
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     public void showBtn() {
@@ -583,16 +647,6 @@ public class MainPane extends BorderPane {
 
         // Tạo người chơi mới dựa trên loại người chơi đã chọn
         setPlayers(player1Type, player2Type);
-        if (p1 instanceof AI) {
-            System.out.println("AI");
-        } else {
-            System.out.println("Human");
-        }
-        if (p2 instanceof AI) {
-            System.out.println("AI");
-        } else {
-            System.out.println("Human");
-        }
         showScore();
         // Đặt lại điểm số
         p1.setScore(0);
@@ -629,6 +683,7 @@ public class MainPane extends BorderPane {
                 turn = (turn == 1) ? 2 : 1;
                 setScore();
                 showScore();
+                lastMoveTime = System.currentTimeMillis();
             }
         }
 

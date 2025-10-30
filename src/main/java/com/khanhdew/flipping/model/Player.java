@@ -4,10 +4,14 @@ public abstract class Player {
     private int score;
     private int playerId;
     private String name;
+    private long time;
+    private final double TIME_LIMIT_IN_MINUTE = 30;
+
     public Player(int playerId, String name) {
         this.playerId = playerId;
         this.score = 0;
         this.name = name;
+        time = (int) TIME_LIMIT_IN_MINUTE * 60 * 1000;
     }
 
     public static Player createPlayer(int playerId, String name, String type) {
@@ -45,5 +49,18 @@ public abstract class Player {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void tick() {
+        time -= 1000;
+    }
+
+    public void reset() {
+        this.score = 0;
+        this.time = (int) TIME_LIMIT_IN_MINUTE * 60 * 1000;
     }
 }
