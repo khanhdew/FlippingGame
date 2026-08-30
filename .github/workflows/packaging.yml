@@ -7,20 +7,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Extract version first to use in all jobs
+  # Calculate semantic version based on commit history
   get-version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.extract_version.outputs.version }}
+      version: ${{ steps.semver.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Extract version from pom.xml
-        id: extract_version
-        run: |
-          version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          echo "version=$version" >> $GITHUB_OUTPUT
+      - name: Calculate Semantic Version
+        id: semver
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          major_pattern: "(MAJOR)|(!:)|(BREAKING CHANGE:)"
+          minor_pattern: "(MINOR)|(feat:)|(feat\\(.*\\):)"
+          version_format: "${major}.${minor}.${patch}"
+          bump_each_commit: false
+
+      - name: Log Version
+        run: echo "Target release version is ${{ steps.semver.outputs.version }}"
 
   build-linux:
     needs: get-version
@@ -36,6 +45,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Set Project Version
+        run: mvn versions:set -DnewVersion=${{ env.VERSION }} -DgenerateBackupPoms=false
 
       - name: Build with Maven and prepare dependencies
         run: |
@@ -108,6 +120,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Set Project Version
+        shell: pwsh
+        run: mvn versions:set "-DnewVersion=${{ env.VERSION }}" -DgenerateBackupPoms=false
+
       - name: Build with Maven and prepare dependencies
         shell: pwsh
         run: |
@@ -175,6 +191,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Set Project Version
+        run: mvn versions:set -DnewVersion=${{ env.VERSION }} -DgenerateBackupPoms=false
 
       - name: Build with Maven and prepare dependencies
         run: |
