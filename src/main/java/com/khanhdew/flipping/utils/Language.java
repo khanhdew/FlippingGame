@@ -52,6 +52,22 @@ public enum Language {
         english.put("undo", "Undo");
         english.put("save", "Save");
         english.put("load", "Load");
+        english.put("onlineMultiplayer", "Online Multiplayer");
+        english.put("hostGame", "Host Game");
+        english.put("joinGame", "Join Game");
+        english.put("ipAddress", "IP Address");
+        english.put("port", "Port");
+        english.put("waitingForOpponent", "Waiting for opponent to connect...");
+        english.put("connecting", "Connecting to host...");
+        english.put("connected", "Connected");
+        english.put("connectionLost", "Connection lost with opponent.");
+        english.put("yourTurn", "Your Turn");
+        english.put("opponentTurn", "Opponent's Turn");
+        english.put("chat", "Chat");
+        english.put("send", "Send");
+        english.put("surrender", "Surrender");
+        english.put("rematch", "Rematch");
+        english.put("rematchPrompt", "Opponent requested a rematch. Do you accept?");
     }
 
     public void initVietnamese() {
@@ -84,5 +100,21 @@ public enum Language {
         vietnamese.put("undo", "Hoàn tác");
         vietnamese.put("save", "Lưu");
         vietnamese.put("load", "Tải");
+        vietnamese.put("onlineMultiplayer", "Chơi trực tuyến");
+        vietnamese.put("hostGame", "Tạo phòng");
+        vietnamese.put("joinGame", "Vào phòng");
+        vietnamese.put("ipAddress", "Địa chỉ IP");
+        vietnamese.put("port", "Cổng");
+        vietnamese.put("waitingForOpponent", "Đang chờ đối thủ tham gia...");
+        vietnamese.put("connecting", "Đang kết nối tới chủ phòng...");
+        vietnamese.put("connected", "Đã kết nối");
+        vietnamese.put("connectionLost", "Mất kết nối với đối thủ.");
+        vietnamese.put("yourTurn", "Lượt của bạn");
+        vietnamese.put("opponentTurn", "Lượt của đối thủ");
+        vietnamese.put("chat", "Trò chuyện");
+        vietnamese.put("send", "Gửi");
+        vietnamese.put("surrender", "Đầu hàng");
+        vietnamese.put("rematch", "Đấu lại");
+        vietnamese.put("rematchPrompt", "Đối thủ yêu cầu đấu lại. Bạn có chấp nhận không?");
     }
 }
