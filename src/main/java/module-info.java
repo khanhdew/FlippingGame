@@ -12,4 +12,6 @@ module com.khanhdew.flipping {
     exports com.khanhdew.flipping;
     exports com.khanhdew.flipping.view;
     opens com.khanhdew.flipping.view to javafx.fxml;
+    exports com.khanhdew.flipping.net;
+    opens com.khanhdew.flipping.net to javafx.fxml;
 }
