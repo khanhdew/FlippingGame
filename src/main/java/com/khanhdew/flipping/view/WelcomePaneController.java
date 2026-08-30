@@ -25,6 +25,7 @@ import java.util.ResourceBundle;
 
 public class WelcomePaneController implements Initializable {
     public Button startButton;
+    public Button onlineButton;
     public Label rowLabel;
     public Label player1Label;
     public Label player2Label;
@@ -134,7 +135,12 @@ public class WelcomePaneController implements Initializable {
             alert.showAndWait();
             e.printStackTrace();
         }
+    }
 
+    @FXML
+    private void openOnlineDialog() {
+        OnlineDialog dialog = new OnlineDialog(stage, this.language);
+        dialog.show();
     }
 
     private void setLanguage(Language language) {
@@ -152,6 +158,9 @@ public class WelcomePaneController implements Initializable {
         alert.setHeaderText(languageMap.get("invalidInput"));
         alert.setContentText(languageMap.get("adviceInput"));
         startButton.setText(languageMap.get("newgame"));
+        if (onlineButton != null) {
+            onlineButton.setText(languageMap.get("onlineMultiplayer"));
+        }
         rowLabel.setText(languageMap.get("row"));
         colLabel.setText(languageMap.get("col"));
         player1NameLabel.setText(languageMap.get("player1Name"));

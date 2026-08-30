@@ -81,9 +81,25 @@ public class MainPane extends BorderPane {
         p2 = Player.createPlayer(2, languageMap.get("player2"), player2Type);
     }
 
+    private boolean isOnlineMode = false;
+    private int localPlayerId = 1;
+
     public void setPlayersName(String player1Name, String player2Name) {
         p1.setName(player1Name);
         p2.setName(player2Name);
+    }
+
+    public void setOnlineMode(boolean isOnline, int localPlayerId) {
+        this.isOnlineMode = isOnline;
+        this.localPlayerId = localPlayerId;
+    }
+
+    public boolean isOnlineMode() {
+        return isOnlineMode;
+    }
+
+    public int getLocalPlayerId() {
+        return localPlayerId;
     }
 
     public void init(int row, int col) {
