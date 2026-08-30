@@ -10,15 +10,23 @@ import java.net.Socket;
 import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 public class NetworkManager {
     private static NetworkManager instance;
 
-    private NetworkRole role = NetworkRole.NONE;
-    private ServerSocket serverSocket;
-    private GameConnection connection;
-    private String localPlayerName = "Player";
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private volatile NetworkRole role = NetworkRole.NONE;
+    private volatile ServerSocket serverSocket;
+    private volatile GameConnection connection;
+    private volatile String localPlayerName = "Player";
+    private final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "NetworkManager-Worker");
+            t.setDaemon(true);
+            return t;
+        }
+    });
 
     public NetworkManager() {}
 
@@ -67,6 +75,7 @@ public class NetworkManager {
                 if (role == NetworkRole.HOST) {
                     listener.onError("Host server error: " + e.getMessage());
                 }
+                disconnect();
             }
         });
     }
