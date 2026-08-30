@@ -71,6 +71,7 @@ public class MainPane extends BorderPane {
 
     private boolean isOnlineMode = false;
     private int localPlayerId = 1;
+    private boolean isDisconnected = false;
     private ChatPane chatPane;
     private Label onlineStatusBanner;
     private NetworkManager networkManager = NetworkManager.getInstance();
@@ -103,6 +104,7 @@ public class MainPane extends BorderPane {
     public void setOnlineMode(boolean isOnline, int localPlayerId) {
         this.isOnlineMode = isOnline;
         this.localPlayerId = localPlayerId;
+        this.isDisconnected = false;
         if (isOnline) {
             registerNetworkListener();
             if (scorePane != null && chatPane == null) {
@@ -242,6 +244,10 @@ public class MainPane extends BorderPane {
     }
 
     public void handleDisconnection(String reason) {
+        if (isDisconnected) {
+            return;
+        }
+        isDisconnected = true;
         if (timer != null) {
             timer.cancel();
         }
@@ -379,6 +385,7 @@ public class MainPane extends BorderPane {
         turn = 1;
         mouse.clear();
         mouse.mouseClicked = true;
+        isDisconnected = false;
         setTimer();
     }
 
@@ -822,6 +829,7 @@ public class MainPane extends BorderPane {
         gameMenu.getItems().add(newItem);
         MenuItem exitItem = new MenuItem("Exit");
         exitItem.setOnAction(e -> {
+            NetworkManager.getInstance().disconnect();
             Platform.exit();
         });
         gameMenu.getItems().add(exitItem);
@@ -1092,5 +1100,9 @@ public class MainPane extends BorderPane {
 
     public BorderPane getScorePane() {
         return scorePane;
+    }
+
+    public boolean isDisconnected() {
+        return isDisconnected;
     }
 }

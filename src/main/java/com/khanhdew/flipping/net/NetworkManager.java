@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NetworkManager {
     private static NetworkManager instance;
@@ -57,6 +58,7 @@ public class NetworkManager {
                 serverSocket = new ServerSocket(port);
                 Socket clientSocket = serverSocket.accept();
 
+                AtomicBoolean disconnected = new AtomicBoolean(false);
                 NetworkEventListener hostInternalListener = new NetworkEventListener() {
                     @Override
                     public void onConnected(String opponentName, int r, int c, int assignedPlayerId) {
@@ -88,9 +90,11 @@ public class NetworkManager {
                         if (l != null) l.onOpponentSurrendered();
                     }
                     @Override public void onDisconnected(String reason) {
-                        role = NetworkRole.NONE;
-                        NetworkEventListener l = eventListener;
-                        if (l != null) l.onDisconnected(reason);
+                        if (disconnected.compareAndSet(false, true)) {
+                            internalCleanup();
+                            NetworkEventListener l = eventListener;
+                            if (l != null) l.onDisconnected(reason);
+                        }
                     }
                     @Override public void onError(String errorMessage) {
                         NetworkEventListener l = eventListener;
@@ -125,6 +129,7 @@ public class NetworkManager {
                 Socket socket = new Socket();
                 socket.connect(new InetSocketAddress(hostIp, port), 5000);
 
+                AtomicBoolean disconnected = new AtomicBoolean(false);
                 NetworkEventListener clientInternalListener = new NetworkEventListener() {
                     @Override
                     public void onConnected(String opponentName, int rows, int cols, int assignedPlayerId) {
@@ -160,9 +165,11 @@ public class NetworkManager {
                         if (l != null) l.onOpponentSurrendered();
                     }
                     @Override public void onDisconnected(String reason) {
-                        role = NetworkRole.NONE;
-                        NetworkEventListener l = eventListener;
-                        if (l != null) l.onDisconnected(reason);
+                        if (disconnected.compareAndSet(false, true)) {
+                            internalCleanup();
+                            NetworkEventListener l = eventListener;
+                            if (l != null) l.onDisconnected(reason);
+                        }
                     }
                     @Override public void onError(String errorMessage) {
                         NetworkEventListener l = eventListener;
@@ -215,6 +222,20 @@ public class NetworkManager {
         if (connection != null) {
             connection.send(ProtocolMessage.encodeSurrender());
         }
+    }
+
+    private synchronized void internalCleanup() {
+        if (connection != null) {
+            connection.close();
+            connection = null;
+        }
+        if (serverSocket != null && !serverSocket.isClosed()) {
+            try {
+                serverSocket.close();
+            } catch (IOException ignored) {}
+            serverSocket = null;
+        }
+        this.role = NetworkRole.NONE;
     }
 
     public synchronized void disconnect() {
