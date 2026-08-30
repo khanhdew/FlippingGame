@@ -1,11 +1,12 @@
 package com.khanhdew.flipping.utils;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
-
 
 public class DbConnector {
     private static DbConnector instance;
@@ -13,7 +14,14 @@ public class DbConnector {
 
     private DbConnector() {
         try {
-            String DB_URL = "jdbc:sqlite:flipping.db";
+            String userHome = System.getProperty("user.home");
+            File appDir = new File(userHome, ".flippinggame");
+            if (!appDir.exists()) {
+                appDir.mkdirs();
+            }
+            File dbFile = new File(appDir, "flipping.db");
+            String DB_URL = "jdbc:sqlite:" + dbFile.getAbsolutePath();
+
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection(DB_URL);
             connection.setAutoCommit(true);
@@ -23,9 +31,9 @@ public class DbConnector {
         } catch (SQLException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("SQLite JDBC Driver not found", e);
         } catch (IOException e) {
-            System.out.println("Schema file not found");
+            System.err.println("Schema file not found or failed to execute: " + e.getMessage());
         }
         System.out.println("Connected to database");
     }
@@ -52,24 +60,34 @@ public class DbConnector {
     }
 
     boolean executeScript(Connection connection) throws IOException, SQLException {
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/schema.sql"))) {
-            StringBuilder currentStatement = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.endsWith(";")) {
-                    currentStatement.append(line, 0, line.length() - 1);
-                    try (Statement statement = connection.createStatement()) {
-                        statement.execute(currentStatement.toString());
+        try (InputStream in = getClass().getResourceAsStream("/schema.sql")) {
+            if (in == null) {
+                throw new IOException("Resource /schema.sql not found on classpath");
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                StringBuilder currentStatement = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.trim();
+                    if (line.isEmpty() || line.startsWith("--")) {
+                        continue;
                     }
-                    currentStatement.setLength(0);
-                } else {
-                    currentStatement.append(line);
+                    if (line.endsWith(";")) {
+                        currentStatement.append(line, 0, line.length() - 1);
+                        try (Statement statement = connection.createStatement()) {
+                            statement.execute(currentStatement.toString());
+                        }
+                        currentStatement.setLength(0);
+                    } else {
+                        currentStatement.append(line).append(" ");
+                    }
                 }
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (SQLException e) {
-            connection.rollback();
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+            }
             throw e;
         }
         return true;

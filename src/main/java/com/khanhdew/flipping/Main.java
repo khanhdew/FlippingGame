@@ -21,17 +21,23 @@ public class Main extends Application {
         stage.setTitle("Flipping");
         PlayerRegister playerRegister = new PlayerRegister();
         playerRegister.setLanguage(Language.ENGLISH);
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("welcomepane.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/khanhdew/flipping/welcomepane.fxml"));
         Parent welcomePane = loader.load();
 
         WelcomePaneController controller = loader.getController();
         controller.setStage(stage);
 
         Scene scene = new Scene(welcomePane, 800, 500);
-        scene.getStylesheets().add("file:src/main/resources/assets/css/style.css");
+        var cssUrl = getClass().getResource("/assets/css/style.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        }
         stage.setScene(scene);
         stage.setResizable(true);
-        stage.getIcons().add(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));
+        var iconStream = getClass().getResourceAsStream("/assets/img/icon.png");
+        if (iconStream != null) {
+            stage.getIcons().add(new javafx.scene.image.Image(iconStream));
+        }
         stage.show();
     }
 }

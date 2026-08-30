@@ -164,7 +164,10 @@ public class WelcomePaneController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        imageView.setImage(new javafx.scene.image.Image("file:src/main/resources/assets/img/icon.png"));
+        var iconStream = getClass().getResourceAsStream("/assets/img/icon.png");
+        if (iconStream != null) {
+            imageView.setImage(new javafx.scene.image.Image(iconStream));
+        }
         languageOption.getItems().addAll("English", "Tiếng Việt");
         languageOption.setValue("English");
         languageOption.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {

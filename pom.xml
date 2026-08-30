@@ -79,7 +79,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.khanhdew.flipping.Main</mainClass>
+                            <mainClass>com.khanhdew.flipping.Launcher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

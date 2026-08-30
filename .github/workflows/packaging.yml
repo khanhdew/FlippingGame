@@ -37,8 +37,12 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build with Maven (fat jar with dependencies)
-        run: mvn clean package -DskipTests
+      - name: Build with Maven and prepare dependencies
+        run: |
+          mvn clean package -DskipTests
+          mkdir -p target/package-input
+          cp target/FlippingGame-${{ env.VERSION }}.jar target/package-input/
+          mvn dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/package-input -DskipTests
 
       - name: Install required packages for RPM
         run: sudo apt-get install -y rpm
@@ -46,10 +50,10 @@ jobs:
       - name: Package for Linux (DEB)
         run: |
           jpackage \
-            --input target/ \
+            --input target/package-input \
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
-            --main-class com.khanhdew.flipping.Main \
+            --main-class com.khanhdew.flipping.Launcher \
             --type deb \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \
@@ -59,10 +63,10 @@ jobs:
       - name: Package for Linux (RPM)
         run: |
           jpackage \
-            --input target/ \
+            --input target/package-input \
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
-            --main-class com.khanhdew.flipping.Main \
+            --main-class com.khanhdew.flipping.Launcher \
             --type rpm \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \
@@ -96,16 +100,22 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Build with Maven and prepare dependencies
+        shell: pwsh
+        run: |
+          mvn clean package -DskipTests
+          New-Item -ItemType Directory -Force -Path target/package-input
+          Copy-Item target/FlippingGame-${{ env.VERSION }}.jar target/package-input/
+          mvn dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/package-input -DskipTests
 
       - name: Package for Windows (MSI)
+        shell: pwsh
         run: |
           jpackage `
-            --input target/ `
+            --input target/package-input `
             --name FlippingGame `
             --main-jar FlippingGame-${{ env.VERSION }}.jar `
-            --main-class com.khanhdew.flipping.Main `
+            --main-class com.khanhdew.flipping.Launcher `
             --type msi `
             --app-version ${{ env.VERSION }} `
             --vendor "khanhdew" `
@@ -115,12 +125,13 @@ jobs:
             --dest output/
 
       - name: Package for Windows (EXE)
+        shell: pwsh
         run: |
           jpackage `
-            --input target/ `
+            --input target/package-input `
             --name FlippingGame `
             --main-jar FlippingGame-${{ env.VERSION }}.jar `
-            --main-class com.khanhdew.flipping.Main `
+            --main-class com.khanhdew.flipping.Launcher `
             --type exe `
             --app-version ${{ env.VERSION }} `
             --vendor "khanhdew" `
@@ -157,16 +168,20 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Build with Maven and prepare dependencies
+        run: |
+          mvn clean package -DskipTests
+          mkdir -p target/package-input
+          cp target/FlippingGame-${{ env.VERSION }}.jar target/package-input/
+          mvn dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/package-input -DskipTests
 
       - name: Package for macOS (DMG)
         run: |
           jpackage \
-            --input target/ \
+            --input target/package-input \
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
-            --main-class com.khanhdew.flipping.Main \
+            --main-class com.khanhdew.flipping.Launcher \
             --type dmg \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \
@@ -176,10 +191,10 @@ jobs:
       - name: Package for macOS (PKG)
         run: |
           jpackage \
-            --input target/ \
+            --input target/package-input \
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
-            --main-class com.khanhdew.flipping.Main \
+            --main-class com.khanhdew.flipping.Launcher \
             --type pkg \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \

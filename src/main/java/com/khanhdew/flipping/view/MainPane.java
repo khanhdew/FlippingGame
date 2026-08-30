@@ -548,13 +548,13 @@ public class MainPane extends BorderPane {
         FXMLLoader loader = null;
         VBox pane;
         try {
-            loader = new FXMLLoader(new URL("file:src/main/resources/com/khanhdew/flipping/button-Pane.fxml"));
+            loader = new FXMLLoader(getClass().getResource("/com/khanhdew/flipping/button-Pane.fxml"));
             pane = loader.load();
             ButtonPaneController controller = loader.getController();
             controller.setGamePane(this);
             pane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to load button-Pane.fxml", e);
         }
         scorePane.setCenter(pane);
     }
