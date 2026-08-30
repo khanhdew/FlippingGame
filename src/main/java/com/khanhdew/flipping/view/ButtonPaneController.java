@@ -99,6 +99,67 @@ public class ButtonPaneController {
 //                }
             DAO.loadLastSave(mainPane);
         });
+
+        if (mainPane.isOnlineMode()) {
+            configureOnlineMode();
+        }
+    }
+
+    public void configureOnlineMode() {
+        if (mainPane == null || !mainPane.isOnlineMode()) return;
+        if (languageMap == null) {
+            languageMap = mainPane.getLanguageMap();
+        }
+
+        if (undo != null) undo.setDisable(true);
+        if (saveGame != null) saveGame.setDisable(true);
+        if (loadSavedGame != null) loadSavedGame.setDisable(true);
+        if (player1 != null) player1.setDisable(true);
+        if (player2 != null) player2.setDisable(true);
+        if (row != null) row.setDisable(true);
+        if (col != null) col.setDisable(true);
+
+        String rematchText = (languageMap != null && languageMap.containsKey("rematch"))
+                ? languageMap.get("rematch") : "Rematch";
+        if (newGame != null) {
+            newGame.setText(rematchText);
+            newGame.setOnAction(e -> {
+                com.khanhdew.flipping.net.NetworkManager nm = (mainPane != null && mainPane.getNetworkManager() != null)
+                        ? mainPane.getNetworkManager() : com.khanhdew.flipping.net.NetworkManager.getInstance();
+                nm.sendRestartReq();
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle(rematchText);
+                alert.setHeaderText(null);
+                alert.setContentText("Rematch request sent to opponent.");
+                alert.show();
+            });
+        }
+
+        String surrenderText = (languageMap != null && languageMap.containsKey("surrender"))
+                ? languageMap.get("surrender") : "Surrender";
+        if (reset != null) {
+            reset.setText(surrenderText);
+            reset.setOnAction(e -> {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle(surrenderText);
+                confirm.setHeaderText(null);
+                confirm.setContentText("Are you sure you want to surrender?");
+                confirm.showAndWait().ifPresent(res -> {
+                    if (res == ButtonType.OK) {
+                        com.khanhdew.flipping.net.NetworkManager nm = (mainPane != null && mainPane.getNetworkManager() != null)
+                                ? mainPane.getNetworkManager() : com.khanhdew.flipping.net.NetworkManager.getInstance();
+                        nm.sendSurrender();
+                        if (mainPane != null) {
+                            mainPane.handleLocalSurrender();
+                        }
+                    }
+                });
+            });
+        }
+    }
+
+    public MainPane getMainPane() {
+        return mainPane;
     }
 
     public void setPlayerRegister(PlayerRegister playerRegister){

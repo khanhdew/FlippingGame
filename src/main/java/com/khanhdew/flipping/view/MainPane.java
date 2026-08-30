@@ -2,6 +2,8 @@ package com.khanhdew.flipping.view;
 
 import com.google.common.collect.BiMap;
 import com.khanhdew.flipping.model.*;
+import com.khanhdew.flipping.net.NetworkEventListener;
+import com.khanhdew.flipping.net.NetworkManager;
 import com.khanhdew.flipping.utils.BoardHelper;
 import com.khanhdew.flipping.utils.Language;
 import com.khanhdew.flipping.utils.Mouse;
@@ -67,31 +69,51 @@ public class MainPane extends BorderPane {
     private int[][] matrix;
     private final Stack<Piece> historyMove = new Stack<>();
 
+    private boolean isOnlineMode = false;
+    private int localPlayerId = 1;
+    private ChatPane chatPane;
+    private Label onlineStatusBanner;
+    private NetworkManager networkManager = NetworkManager.getInstance();
+    private ButtonPaneController buttonPaneController;
+
     public MainPane() {
+        this.gameLanguage = Language.ENGLISH;
+        this.languageMap = gameLanguage.getLanguage();
+        setPlayers("human", "human");
     }
 
     public MainPane(String player1Type, String player2Type, Language gameLanguage) {
-        this.gameLanguage = gameLanguage;
-        languageMap = gameLanguage.getLanguage();
+        this.gameLanguage = gameLanguage != null ? gameLanguage : Language.ENGLISH;
+        this.languageMap = this.gameLanguage.getLanguage();
         setPlayers(player1Type, player2Type);
     }
 
     private void setPlayers(String player1Type, String player2Type) {
-        p1 = Player.createPlayer(1, languageMap.get("player1"), player1Type);
-        p2 = Player.createPlayer(2, languageMap.get("player2"), player2Type);
+        String p1Title = (languageMap != null && languageMap.containsKey("player1")) ? languageMap.get("player1") : "Player 1";
+        String p2Title = (languageMap != null && languageMap.containsKey("player2")) ? languageMap.get("player2") : "Player 2";
+        p1 = Player.createPlayer(1, p1Title, player1Type);
+        p2 = Player.createPlayer(2, p2Title, player2Type);
     }
 
-    private boolean isOnlineMode = false;
-    private int localPlayerId = 1;
-
     public void setPlayersName(String player1Name, String player2Name) {
-        p1.setName(player1Name);
-        p2.setName(player2Name);
+        if (p1 != null) p1.setName(player1Name);
+        if (p2 != null) p2.setName(player2Name);
     }
 
     public void setOnlineMode(boolean isOnline, int localPlayerId) {
         this.isOnlineMode = isOnline;
         this.localPlayerId = localPlayerId;
+        if (isOnline) {
+            registerNetworkListener();
+            if (scorePane != null && chatPane == null) {
+                chatPane = new ChatPane(gameLanguage);
+                chatPane.setNetworkManager(networkManager);
+                scorePane.setBottom(chatPane);
+            }
+            if (buttonPaneController != null) {
+                buttonPaneController.configureOnlineMode();
+            }
+        }
     }
 
     public boolean isOnlineMode() {
@@ -100,6 +122,148 @@ public class MainPane extends BorderPane {
 
     public int getLocalPlayerId() {
         return localPlayerId;
+    }
+
+    public void registerNetworkListener() {
+        if (networkManager == null) return;
+        networkManager.setEventListener(new NetworkEventListener() {
+            @Override
+            public void onConnected(String opponentName, int rows, int cols, int assignedPlayerId) {
+            }
+
+            @Override
+            public void onMoveReceived(int row, int col) {
+                Platform.runLater(() -> applyRemoteMove(row, col));
+            }
+
+            @Override
+            public void onChatReceived(String sender, String message) {
+                if (chatPane != null) {
+                    chatPane.appendMessage(sender, message);
+                }
+            }
+
+            @Override
+            public void onRestartRequested() {
+                Platform.runLater(() -> handleRestartRequested());
+            }
+
+            @Override
+            public void onRestartAccepted() {
+                Platform.runLater(() -> {
+                    reset();
+                    showScore();
+                });
+            }
+
+            @Override
+            public void onRestartDeclined() {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle(getLangText("rematch", "Rematch"));
+                    alert.setHeaderText(null);
+                    alert.setContentText("Opponent declined the rematch request.");
+                    alert.show();
+                });
+            }
+
+            @Override
+            public void onOpponentSurrendered() {
+                Platform.runLater(() -> handleOpponentSurrender());
+            }
+
+            @Override
+            public void onDisconnected(String reason) {
+                Platform.runLater(() -> handleDisconnection(reason));
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle(getLangText("error", "Error"));
+                    alert.setHeaderText(null);
+                    alert.setContentText(errorMessage);
+                    alert.show();
+                });
+            }
+        });
+    }
+
+    public String getLangText(String key, String fallback) {
+        if (languageMap != null && languageMap.containsKey(key)) {
+            return languageMap.get(key);
+        }
+        return fallback;
+    }
+
+    public void handleRestartRequested() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(getLangText("rematch", "Rematch"));
+        alert.setHeaderText(getLangText("rematch", "Rematch"));
+        alert.setContentText(getLangText("rematchPrompt", "Opponent requested a rematch. Do you accept?"));
+        alert.showAndWait().ifPresent(res -> {
+            if (res == ButtonType.OK) {
+                if (networkManager != null) {
+                    networkManager.sendRestartAck();
+                }
+                reset();
+                showScore();
+            } else {
+                if (networkManager != null) {
+                    networkManager.sendRestartDecl();
+                }
+            }
+        });
+    }
+
+    public void handleOpponentSurrender() {
+        if (timer != null) {
+            timer.cancel();
+        }
+        mouse.mouseClicked = false;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(getLangText("gameOver", "Game Over"));
+        alert.setHeaderText(getLangText("win", "Wins!"));
+        alert.setContentText("Opponent surrendered! You win!");
+        alert.show();
+    }
+
+    public void handleLocalSurrender() {
+        if (timer != null) {
+            timer.cancel();
+        }
+        mouse.mouseClicked = false;
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(getLangText("gameOver", "Game Over"));
+        alert.setHeaderText(getLangText("surrender", "Surrender"));
+        alert.setContentText("You surrendered. Game over.");
+        alert.show();
+    }
+
+    public void handleDisconnection(String reason) {
+        if (timer != null) {
+            timer.cancel();
+        }
+        mouse.mouseClicked = false;
+        if (onlineStatusBanner != null) {
+            onlineStatusBanner.setText("Disconnected");
+            onlineStatusBanner.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #6c757d; -fx-padding: 5;");
+        }
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(getLangText("connectionLost", "Connection Lost"));
+        alert.setHeaderText(null);
+        alert.setContentText((reason != null && !reason.isEmpty()) ? reason : getLangText("connectionLost", "Connection lost with opponent."));
+        alert.show();
+    }
+
+    public void applyRemoteMove(int row, int col) {
+        if (move(col, row, turn)) {
+            turn = (turn == 1) ? 2 : 1;
+            setScore();
+            showScore();
+            lastMoveTime = System.currentTimeMillis();
+        }
     }
 
     public void init(int row, int col) {
@@ -133,6 +297,17 @@ public class MainPane extends BorderPane {
         showBtn();
         showMenu();
         showScore();
+
+        if (isOnlineMode) {
+            if (chatPane == null) {
+                chatPane = new ChatPane(gameLanguage);
+                chatPane.setNetworkManager(networkManager);
+            }
+            scorePane.setBottom(chatPane);
+            if (buttonPaneController != null) {
+                buttonPaneController.configureOnlineMode();
+            }
+        }
 
         new AnimationTimer() {
             long lastTick = 0;
@@ -260,16 +435,22 @@ public class MainPane extends BorderPane {
             piece.initCir(piece.getCurrentState());
             if (matrix[piece.getRow()][piece.getCol()] == 3) {
                 piece.setState(PieceState.HINT);
-                piece.setOnMouseEntered(e -> {
-                    // get all pieces that will change
-                    ArrayList<Piece> changes = BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol());
-                    // highlight all pieces that will change
-                    highLightChangeablePieces(changes);
-                });
-                piece.setOnMouseExited(e -> {
-                    unHighLight();
-                });
-                piece.setOnMouseClicked(event -> unHighLight());
+                if (!isOnlineMode || turn == localPlayerId) {
+                    piece.setOnMouseEntered(e -> {
+                        // get all pieces that will change
+                        ArrayList<Piece> changes = BoardHelper.getPieceChangeForEachMove(matrix, getTurn(), piece.getRow(), piece.getCol());
+                        // highlight all pieces that will change
+                        highLightChangeablePieces(changes);
+                    });
+                    piece.setOnMouseExited(e -> {
+                        unHighLight();
+                    });
+                    piece.setOnMouseClicked(event -> unHighLight());
+                } else {
+                    piece.setOnMouseEntered(null);
+                    piece.setOnMouseExited(null);
+                    piece.setOnMouseClicked(null);
+                }
             } else if (matrix[piece.getRow()][piece.getCol()] == 0) {
                 piece.setState(PieceState.EMPTY);
             } else {
@@ -326,11 +507,11 @@ public class MainPane extends BorderPane {
                     st.setInterpolator(Interpolator.EASE_BOTH);
 
                     ScaleTransition st2 = new ScaleTransition(Duration.millis(400), p);
-                    st.setFromX(0.2);
-                    st.setToX(1.0);
-                    st.setAutoReverse(true);
-                    st.setCycleCount(1);
-                    st.setInterpolator(Interpolator.EASE_BOTH);
+                    st2.setFromX(0.2);
+                    st2.setToX(1.0);
+                    st2.setAutoReverse(true);
+                    st2.setCycleCount(1);
+                    st2.setInterpolator(Interpolator.EASE_BOTH);
 
                     // Create a rotation transition for 3D effect
                     RotateTransition rt = new RotateTransition(Duration.millis(400), p);
@@ -371,24 +552,36 @@ public class MainPane extends BorderPane {
         // Current player cannot play, switch turns
         if (!BoardHelper.canPlay(matrix, turn)) {
             turn = (turn == 1) ? 2 : 1;
+            showScore();
             return;
         }
 
         // Show available moves for current player
-        BoardHelper.hint(matrix, turn);
+        if (!isOnlineMode || turn == localPlayerId) {
+            BoardHelper.hint(matrix, turn);
+        } else {
+            // In online mode, clear hints when it's not our turn
+            for (int i = 0; i < matrix.length; i++) {
+                for (int j = 0; j < matrix[0].length; j++) {
+                    if (matrix[i][j] == 3) {
+                        matrix[i][j] = 0;
+                    }
+                }
+            }
+        }
+
         long now = System.currentTimeMillis();
-        // Show Timer
 
+        if (isOnlineMode && turn != localPlayerId) {
+            mouse.clear();
+            return;
+        }
 
-//        // Handle timeout - make automatic move if time limit exceeded
-//        if (now - lastMoveTime > TIME_LIMIT_EACH_TURN * 1000) {
-//            makeTimeoutMove(now);
-//            return;
-//        }
-
-        // Handle AI move if current player is AI
-        Player currentPlayer = (turn == 1) ? p1 : p2;
-        handleAI(currentPlayer);
+        // Handle AI move if current player is AI (offline only)
+        if (!isOnlineMode) {
+            Player currentPlayer = (turn == 1) ? p1 : p2;
+            handleAI(currentPlayer);
+        }
 
         // Handle human player move if mouse click detected
         if (mouse.x > 0 && mouse.y > 0) {
@@ -398,20 +591,22 @@ public class MainPane extends BorderPane {
 
     private void handleGameOver() {
         setScore();
-        timer.cancel();
+        if (timer != null) {
+            timer.cancel();
+        }
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle(languageMap.get("gameOver"));
+            alert.setTitle(getLangText("gameOver", "Game Over"));
 
             if (p1.getScore() > p2.getScore()) {
-                alert.setHeaderText(p1.getName() + " " + languageMap.get("win"));
-                alert.setContentText(p1.getName() + " " + languageMap.get("winContext") + p1.getScore());
+                alert.setHeaderText(p1.getName() + " " + getLangText("win", "Wins!"));
+                alert.setContentText(p1.getName() + " " + getLangText("winContext", "has won the game with a score of ") + p1.getScore());
             } else if (p1.getScore() < p2.getScore()) {
-                alert.setHeaderText(p2.getName() + " " + languageMap.get("win"));
-                alert.setContentText(p2.getName() + " " + languageMap.get("winContext") + p2.getScore());
+                alert.setHeaderText(p2.getName() + " " + getLangText("win", "Wins!"));
+                alert.setContentText(p2.getName() + " " + getLangText("winContext", "has won the game with a score of ") + p2.getScore());
             } else {
-                alert.setHeaderText(languageMap.get("draw"));
-                alert.setContentText(languageMap.get("drawContext") + p1.getScore());
+                alert.setHeaderText(getLangText("draw", "Draw!"));
+                alert.setContentText(getLangText("drawContext", "The game has ended in a draw with both players scoring ") + p1.getScore());
             }
 
             alert.showAndWait();
@@ -433,11 +628,22 @@ public class MainPane extends BorderPane {
     }
 
     private void handleHumanMove(long now) {
-        if (!BoardHelper.isLegalMove(matrix, turn, mouse.getRow(), mouse.getCol())) {
+        if (isOnlineMode && turn != localPlayerId) {
+            mouse.clear();
             return;
         }
 
-        if (move(mouse.getCol(), mouse.getRow(), turn)) {
+        int moveRow = mouse.getRow();
+        int moveCol = mouse.getCol();
+
+        if (!BoardHelper.isLegalMove(matrix, turn, moveRow, moveCol)) {
+            return;
+        }
+
+        if (move(moveCol, moveRow, turn)) {
+            if (isOnlineMode && networkManager != null) {
+                networkManager.sendMove(moveRow, moveCol);
+            }
             turn = (turn == 1) ? 2 : 1;
             setScore();
             showScore();
@@ -549,7 +755,27 @@ public class MainPane extends BorderPane {
         pane.setSpacing(20);
         pane.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 
-        vBox.getChildren().addAll(pane, timerPane);
+        if (onlineStatusBanner == null) {
+            onlineStatusBanner = new Label();
+        }
+        if (isOnlineMode) {
+            if (turn == localPlayerId) {
+                String yourTurnText = (languageMap != null && languageMap.containsKey("yourTurn"))
+                        ? languageMap.get("yourTurn") : "Your Turn";
+                onlineStatusBanner.setText(yourTurnText);
+                onlineStatusBanner.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #28a745; -fx-alignment: center;");
+            } else {
+                String oppTurnText = (languageMap != null && languageMap.containsKey("opponentTurn"))
+                        ? languageMap.get("opponentTurn") : "Opponent's Turn";
+                onlineStatusBanner.setText(oppTurnText);
+                onlineStatusBanner.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #dc3545; -fx-alignment: center;");
+            }
+            vBox.setAlignment(Pos.CENTER);
+            vBox.getChildren().addAll(pane, timerPane, onlineStatusBanner);
+        } else {
+            vBox.getChildren().addAll(pane, timerPane);
+        }
+
         scorePane.setTop(vBox);
     }
 
@@ -566,8 +792,8 @@ public class MainPane extends BorderPane {
         try {
             loader = new FXMLLoader(getClass().getResource("/com/khanhdew/flipping/button-Pane.fxml"));
             pane = loader.load();
-            ButtonPaneController controller = loader.getController();
-            controller.setGamePane(this);
+            buttonPaneController = loader.getController();
+            buttonPaneController.setGamePane(this);
             pane.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
         } catch (IOException e) {
             throw new RuntimeException("Failed to load button-Pane.fxml", e);
@@ -800,5 +1026,59 @@ public class MainPane extends BorderPane {
 
     public void setC1(Canvas c1) {
         this.c1 = c1;
+    }
+
+    public ChatPane getChatPane() {
+        return chatPane;
+    }
+
+    public void setChatPane(ChatPane chatPane) {
+        this.chatPane = chatPane;
+    }
+
+    public Label getOnlineStatusBanner() {
+        return onlineStatusBanner;
+    }
+
+    public void setOnlineStatusBanner(Label onlineStatusBanner) {
+        this.onlineStatusBanner = onlineStatusBanner;
+    }
+
+    public NetworkManager getNetworkManager() {
+        return networkManager;
+    }
+
+    public void setNetworkManager(NetworkManager networkManager) {
+        this.networkManager = networkManager;
+        if (chatPane != null) {
+            chatPane.setNetworkManager(networkManager);
+        }
+        if (isOnlineMode) {
+            registerNetworkListener();
+        }
+    }
+
+    public ButtonPaneController getButtonPaneController() {
+        return buttonPaneController;
+    }
+
+    public void setButtonPaneController(ButtonPaneController buttonPaneController) {
+        this.buttonPaneController = buttonPaneController;
+    }
+
+    public Mouse getMouse() {
+        return mouse;
+    }
+
+    public void setLocalPlayerId(int localPlayerId) {
+        this.localPlayerId = localPlayerId;
+    }
+
+    public Stack<Piece> getHistoryMove() {
+        return historyMove;
+    }
+
+    public BorderPane getScorePane() {
+        return scorePane;
     }
 }

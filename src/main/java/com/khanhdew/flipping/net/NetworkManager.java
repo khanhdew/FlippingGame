@@ -19,6 +19,7 @@ public class NetworkManager {
     private volatile ServerSocket serverSocket;
     private volatile GameConnection connection;
     private volatile String localPlayerName = "Player";
+    private volatile NetworkEventListener eventListener;
     private final ExecutorService executor = Executors.newCachedThreadPool(new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
@@ -37,10 +38,19 @@ public class NetworkManager {
         return instance;
     }
 
+    public synchronized void setEventListener(NetworkEventListener listener) {
+        this.eventListener = listener;
+    }
+
+    public NetworkEventListener getEventListener() {
+        return this.eventListener;
+    }
+
     public synchronized void startHost(int port, String hostName, int rows, int cols, NetworkEventListener listener) {
         disconnect();
         this.role = NetworkRole.HOST;
         this.localPlayerName = (hostName == null || hostName.trim().isEmpty()) ? "Player 1" : hostName.trim();
+        this.eventListener = listener;
 
         executor.submit(() -> {
             try {
@@ -50,19 +60,42 @@ public class NetworkManager {
                 NetworkEventListener hostInternalListener = new NetworkEventListener() {
                     @Override
                     public void onConnected(String opponentName, int r, int c, int assignedPlayerId) {
-                        listener.onConnected(opponentName, rows, cols, 1);
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onConnected(opponentName, rows, cols, 1);
                     }
-                    @Override public void onMoveReceived(int row, int col) { listener.onMoveReceived(row, col); }
-                    @Override public void onChatReceived(String sender, String message) { listener.onChatReceived(sender, message); }
-                    @Override public void onRestartRequested() { listener.onRestartRequested(); }
-                    @Override public void onRestartAccepted() { listener.onRestartAccepted(); }
-                    @Override public void onRestartDeclined() { listener.onRestartDeclined(); }
-                    @Override public void onOpponentSurrendered() { listener.onOpponentSurrendered(); }
+                    @Override public void onMoveReceived(int row, int col) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onMoveReceived(row, col);
+                    }
+                    @Override public void onChatReceived(String sender, String message) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onChatReceived(sender, message);
+                    }
+                    @Override public void onRestartRequested() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartRequested();
+                    }
+                    @Override public void onRestartAccepted() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartAccepted();
+                    }
+                    @Override public void onRestartDeclined() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartDeclined();
+                    }
+                    @Override public void onOpponentSurrendered() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onOpponentSurrendered();
+                    }
                     @Override public void onDisconnected(String reason) {
                         role = NetworkRole.NONE;
-                        listener.onDisconnected(reason);
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onDisconnected(reason);
                     }
-                    @Override public void onError(String errorMessage) { listener.onError(errorMessage); }
+                    @Override public void onError(String errorMessage) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onError(errorMessage);
+                    }
                 };
 
                 connection = new GameConnection(clientSocket, hostInternalListener);
@@ -73,7 +106,8 @@ public class NetworkManager {
 
             } catch (IOException e) {
                 if (role == NetworkRole.HOST) {
-                    listener.onError("Host server error: " + e.getMessage());
+                    NetworkEventListener l = eventListener;
+                    if (l != null) l.onError("Host server error: " + e.getMessage());
                 }
                 disconnect();
             }
@@ -84,6 +118,7 @@ public class NetworkManager {
         disconnect();
         this.role = NetworkRole.CLIENT;
         this.localPlayerName = (clientName == null || clientName.trim().isEmpty()) ? "Player 2" : clientName.trim();
+        this.eventListener = listener;
 
         executor.submit(() -> {
             try {
@@ -97,26 +132,50 @@ public class NetworkManager {
                         if (connection != null) {
                             connection.send(ProtocolMessage.encodeHandshakeAck(localPlayerName));
                         }
-                        listener.onConnected(opponentName, rows, cols, 2);
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onConnected(opponentName, rows, cols, 2);
                     }
-                    @Override public void onMoveReceived(int row, int col) { listener.onMoveReceived(row, col); }
-                    @Override public void onChatReceived(String sender, String message) { listener.onChatReceived(sender, message); }
-                    @Override public void onRestartRequested() { listener.onRestartRequested(); }
-                    @Override public void onRestartAccepted() { listener.onRestartAccepted(); }
-                    @Override public void onRestartDeclined() { listener.onRestartDeclined(); }
-                    @Override public void onOpponentSurrendered() { listener.onOpponentSurrendered(); }
+                    @Override public void onMoveReceived(int row, int col) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onMoveReceived(row, col);
+                    }
+                    @Override public void onChatReceived(String sender, String message) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onChatReceived(sender, message);
+                    }
+                    @Override public void onRestartRequested() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartRequested();
+                    }
+                    @Override public void onRestartAccepted() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartAccepted();
+                    }
+                    @Override public void onRestartDeclined() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onRestartDeclined();
+                    }
+                    @Override public void onOpponentSurrendered() {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onOpponentSurrendered();
+                    }
                     @Override public void onDisconnected(String reason) {
                         role = NetworkRole.NONE;
-                        listener.onDisconnected(reason);
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onDisconnected(reason);
                     }
-                    @Override public void onError(String errorMessage) { listener.onError(errorMessage); }
+                    @Override public void onError(String errorMessage) {
+                        NetworkEventListener l = eventListener;
+                        if (l != null) l.onError(errorMessage);
+                    }
                 };
 
                 connection = new GameConnection(socket, clientInternalListener);
                 connection.startListening();
 
             } catch (IOException e) {
-                listener.onError("Connection failed: " + e.getMessage());
+                NetworkEventListener l = eventListener;
+                if (l != null) l.onError("Connection failed: " + e.getMessage());
                 disconnect();
             }
         });

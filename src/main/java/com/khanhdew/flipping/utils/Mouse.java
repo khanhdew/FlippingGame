@@ -44,4 +44,14 @@ public class Mouse implements EventHandler<MouseEvent> {
     public void setY(int y) {
         this.y = y;
     }
+
+    public void setRow(int row) {
+        int sq = Board.getSquareSize() > 0 ? Board.getSquareSize() : 100;
+        this.y = row * sq + sq / 2;
+    }
+
+    public void setCol(int col) {
+        int sq = Board.getSquareSize() > 0 ? Board.getSquareSize() : 100;
+        this.x = col * sq + sq / 2;
+    }
 }
