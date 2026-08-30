@@ -1,0 +1,204 @@
+package com.khanhdew.flipping.net;
+
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Enumeration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class NetworkManager {
+    private static NetworkManager instance;
+
+    private NetworkRole role = NetworkRole.NONE;
+    private ServerSocket serverSocket;
+    private GameConnection connection;
+    private String localPlayerName = "Player";
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    public NetworkManager() {}
+
+    public static synchronized NetworkManager getInstance() {
+        if (instance == null) {
+            instance = new NetworkManager();
+        }
+        return instance;
+    }
+
+    public synchronized void startHost(int port, String hostName, int rows, int cols, NetworkEventListener listener) {
+        disconnect();
+        this.role = NetworkRole.HOST;
+        this.localPlayerName = (hostName == null || hostName.trim().isEmpty()) ? "Player 1" : hostName.trim();
+
+        executor.submit(() -> {
+            try {
+                serverSocket = new ServerSocket(port);
+                Socket clientSocket = serverSocket.accept();
+
+                NetworkEventListener hostInternalListener = new NetworkEventListener() {
+                    @Override
+                    public void onConnected(String opponentName, int r, int c, int assignedPlayerId) {
+                        listener.onConnected(opponentName, rows, cols, 1);
+                    }
+                    @Override public void onMoveReceived(int row, int col) { listener.onMoveReceived(row, col); }
+                    @Override public void onChatReceived(String sender, String message) { listener.onChatReceived(sender, message); }
+                    @Override public void onRestartRequested() { listener.onRestartRequested(); }
+                    @Override public void onRestartAccepted() { listener.onRestartAccepted(); }
+                    @Override public void onRestartDeclined() { listener.onRestartDeclined(); }
+                    @Override public void onOpponentSurrendered() { listener.onOpponentSurrendered(); }
+                    @Override public void onDisconnected(String reason) {
+                        role = NetworkRole.NONE;
+                        listener.onDisconnected(reason);
+                    }
+                    @Override public void onError(String errorMessage) { listener.onError(errorMessage); }
+                };
+
+                connection = new GameConnection(clientSocket, hostInternalListener);
+                connection.startListening();
+
+                // Send initial handshake
+                connection.send(ProtocolMessage.encodeHandshake(localPlayerName, rows, cols));
+
+            } catch (IOException e) {
+                if (role == NetworkRole.HOST) {
+                    listener.onError("Host server error: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    public synchronized void connectToHost(String hostIp, int port, String clientName, NetworkEventListener listener) {
+        disconnect();
+        this.role = NetworkRole.CLIENT;
+        this.localPlayerName = (clientName == null || clientName.trim().isEmpty()) ? "Player 2" : clientName.trim();
+
+        executor.submit(() -> {
+            try {
+                Socket socket = new Socket();
+                socket.connect(new InetSocketAddress(hostIp, port), 5000);
+
+                NetworkEventListener clientInternalListener = new NetworkEventListener() {
+                    @Override
+                    public void onConnected(String opponentName, int rows, int cols, int assignedPlayerId) {
+                        // Respond with handshake ack
+                        if (connection != null) {
+                            connection.send(ProtocolMessage.encodeHandshakeAck(localPlayerName));
+                        }
+                        listener.onConnected(opponentName, rows, cols, 2);
+                    }
+                    @Override public void onMoveReceived(int row, int col) { listener.onMoveReceived(row, col); }
+                    @Override public void onChatReceived(String sender, String message) { listener.onChatReceived(sender, message); }
+                    @Override public void onRestartRequested() { listener.onRestartRequested(); }
+                    @Override public void onRestartAccepted() { listener.onRestartAccepted(); }
+                    @Override public void onRestartDeclined() { listener.onRestartDeclined(); }
+                    @Override public void onOpponentSurrendered() { listener.onOpponentSurrendered(); }
+                    @Override public void onDisconnected(String reason) {
+                        role = NetworkRole.NONE;
+                        listener.onDisconnected(reason);
+                    }
+                    @Override public void onError(String errorMessage) { listener.onError(errorMessage); }
+                };
+
+                connection = new GameConnection(socket, clientInternalListener);
+                connection.startListening();
+
+            } catch (IOException e) {
+                listener.onError("Connection failed: " + e.getMessage());
+                disconnect();
+            }
+        });
+    }
+
+    public void sendMove(int row, int col) {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeMove(row, col));
+        }
+    }
+
+    public void sendChat(String message) {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeChat(localPlayerName, message));
+        }
+    }
+
+    public void sendRestartReq() {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeRestartReq());
+        }
+    }
+
+    public void sendRestartAck() {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeRestartAck());
+        }
+    }
+
+    public void sendRestartDecl() {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeRestartDecl());
+        }
+    }
+
+    public void sendSurrender() {
+        if (connection != null) {
+            connection.send(ProtocolMessage.encodeSurrender());
+        }
+    }
+
+    public synchronized void disconnect() {
+        if (connection != null) {
+            try {
+                if (connection.isConnected()) {
+                    connection.send(ProtocolMessage.encodeDisconnect());
+                }
+            } catch (Exception ignored) {}
+            connection.close();
+            connection = null;
+        }
+        if (serverSocket != null && !serverSocket.isClosed()) {
+            try {
+                serverSocket.close();
+            } catch (IOException ignored) {}
+            serverSocket = null;
+        }
+        this.role = NetworkRole.NONE;
+    }
+
+    public NetworkRole getRole() {
+        return role;
+    }
+
+    public String getLocalPlayerName() {
+        return localPlayerName;
+    }
+
+    public boolean isConnected() {
+        return connection != null && connection.isConnected();
+    }
+
+    public static String getLocalIpAddress() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            if (interfaces != null) {
+                while (interfaces.hasMoreElements()) {
+                    NetworkInterface ni = interfaces.nextElement();
+                    if (ni.isLoopback() || !ni.isUp()) continue;
+                    Enumeration<InetAddress> addresses = ni.getInetAddresses();
+                    while (addresses.hasMoreElements()) {
+                        InetAddress addr = addresses.nextElement();
+                        if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                            return addr.getHostAddress();
+                        }
+                    }
+                }
+            }
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {
+            return "127.0.0.1";
+        }
+    }
+}
