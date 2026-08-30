@@ -27,14 +27,15 @@ The TestJFX project is a JavaFX application designed to demonstrate a simple use
 - [x] Player vs AI.
 - [x] Database.
 - [x] Customize board size.
-- [ ] Play with friends.
+- [x] Play with friends (Online Peer-to-Peer / LAN).
+- [x] In-game real-time chat.
 
 ## Project Structure
-- `src/main/java/com/khanhdew/testjfx/Main.java`: Entry point of the application that sets up the primary stage.
-- `src/main/java/com/khanhdew/testjfx/view/WelcomePaneController.java`: Controller for the welcome pane.
+- `src/main/java/com/khanhdew/flipping/Main.java`: Entry point of the application that sets up the primary stage.
+- `src/main/java/com/khanhdew/flipping/view/WelcomePaneController.java`: Controller for the welcome pane.
 - `src/main/resources/assets/css/style.css`: CSS file for styling the application.
 - `src/main/resources/assets/img/icon.png`: Icon for the application.
-- `src/main/resources/com/khanhdew/testjfx/welcomepane.fxml`: FXML file defining the layout of the welcome pane.
+- `src/main/resources/com/khanhdew/flipping/welcomepane.fxml`: FXML file defining the layout of the welcome pane.
 
 ## Contributing
 Contributions are welcome. Please open an issue to discuss your ideas before making a pull request.

@@ -13,6 +13,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.kordamp.bootstrapfx.BootstrapFX;
 
 public class OnlineDialog {
     private final Stage parentStage;
@@ -75,6 +76,11 @@ public class OnlineDialog {
                 int cols = Integer.parseInt(hostColsField.getText().trim());
                 String name = hostNameField.getText().trim();
 
+                if (port < 1024 || port > 65535 || rows < 4 || rows > 20 || cols < 4 || cols > 20) {
+                    hostStatusLabel.setText(langMap.get("invalidInput") != null ? langMap.get("invalidInput") : "Invalid input");
+                    return;
+                }
+
                 hostStatusLabel.setText(langMap.get("waitingForOpponent"));
                 startHostBtn.setDisable(true);
 
@@ -106,7 +112,7 @@ public class OnlineDialog {
                     }
                 });
             } catch (NumberFormatException ex) {
-                hostStatusLabel.setText(langMap.get("invalidInput"));
+                hostStatusLabel.setText(langMap.get("invalidInput") != null ? langMap.get("invalidInput") : "Invalid input");
             }
         });
 
@@ -145,6 +151,11 @@ public class OnlineDialog {
                 int port = Integer.parseInt(joinPortField.getText().trim());
                 String name = joinNameField.getText().trim();
 
+                if (ip.isEmpty() || port < 1024 || port > 65535) {
+                    joinStatusLabel.setText(langMap.get("invalidInput") != null ? langMap.get("invalidInput") : "Invalid input");
+                    return;
+                }
+
                 joinStatusLabel.setText(langMap.get("connecting"));
                 connectBtn.setDisable(true);
 
@@ -176,7 +187,7 @@ public class OnlineDialog {
                     }
                 });
             } catch (NumberFormatException ex) {
-                joinStatusLabel.setText(langMap.get("invalidInput"));
+                joinStatusLabel.setText(langMap.get("invalidInput") != null ? langMap.get("invalidInput") : "Invalid input");
             }
         });
 
@@ -188,6 +199,7 @@ public class OnlineDialog {
         dialogStage.setOnCloseRequest(e -> netManager.disconnect());
 
         Scene scene = new Scene(tabPane, 420, 320);
+        scene.getStylesheets().add(BootstrapFX.bootstrapFXStylesheet());
         dialogStage.setScene(scene);
         dialogStage.setResizable(false);
         dialogStage.showAndWait();

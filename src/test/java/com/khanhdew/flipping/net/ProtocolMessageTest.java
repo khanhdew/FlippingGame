@@ -246,4 +246,13 @@ class ProtocolMessageTest {
         ProtocolMessage.parseAndDispatch("   ", listener);
         ProtocolMessage.parseAndDispatch("MOVE 1 1", null); // null listener safely ignored
     }
+
+    @Test
+    void testPrivateConstructor() throws Exception {
+        java.lang.reflect.Constructor<ProtocolMessage> constructor = ProtocolMessage.class.getDeclaredConstructor();
+        assertTrue(java.lang.reflect.Modifier.isPrivate(constructor.getModifiers()), "Constructor should be private");
+        constructor.setAccessible(true);
+        ProtocolMessage instance = constructor.newInstance();
+        assertNotNull(instance);
+    }
 }

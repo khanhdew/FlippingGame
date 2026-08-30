@@ -297,4 +297,30 @@ class MainPaneOnlineTest {
 
         assertTrue(latch.await(3, TimeUnit.SECONDS));
     }
+
+    @Test
+    void testMenuBarNewGameInOnlineMode() throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+
+        Platform.runLater(() -> {
+            MainPane mainPane = new MainPane("human", "human", Language.ENGLISH);
+            TestNetworkManager testNetManager = new TestNetworkManager();
+            mainPane.setNetworkManager(testNetManager);
+            mainPane.setOnlineMode(true, 1);
+            mainPane.init(8, 8);
+
+            javafx.scene.control.MenuBar menuBar = (javafx.scene.control.MenuBar) mainPane.getTop();
+            assertNotNull(menuBar, "MenuBar should be present at top of MainPane");
+            javafx.scene.control.Menu gameMenu = menuBar.getMenus().get(0);
+            javafx.scene.control.MenuItem newGameItem = gameMenu.getItems().get(0);
+            assertEquals("New game", newGameItem.getText());
+
+            newGameItem.getOnAction().handle(new javafx.event.ActionEvent());
+
+            assertEquals(1, testNetManager.restartReqCount.get(), "Triggering New game in online mode should send restart request");
+            latch.countDown();
+        });
+
+        assertTrue(latch.await(3, TimeUnit.SECONDS));
+    }
 }

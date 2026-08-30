@@ -805,7 +805,19 @@ public class MainPane extends BorderPane {
         Menu gameMenu = new Menu("Game");
         MenuItem newItem = new MenuItem("New game");
         newItem.setOnAction(e -> {
-            reset();
+            if (isOnlineMode) {
+                if (networkManager != null) {
+                    networkManager.sendRestartReq();
+                }
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                String rematchText = getLangText("rematch", "Rematch");
+                alert.setTitle(rematchText);
+                alert.setHeaderText(null);
+                alert.setContentText("Rematch request sent to opponent.");
+                alert.show();
+            } else {
+                reset();
+            }
         });
         gameMenu.getItems().add(newItem);
         MenuItem exitItem = new MenuItem("Exit");

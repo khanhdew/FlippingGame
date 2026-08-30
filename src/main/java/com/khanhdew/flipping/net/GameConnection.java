@@ -23,7 +23,7 @@ public class GameConnection {
         this.writer = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
     }
 
-    public void startListening() {
+    public synchronized void startListening() {
         if (running) return;
         running = true;
 
@@ -58,7 +58,7 @@ public class GameConnection {
         return socket != null && socket.isConnected() && !socket.isClosed();
     }
 
-    public void close() {
+    public synchronized void close() {
         running = false;
         try {
             if (socket != null && !socket.isClosed()) {

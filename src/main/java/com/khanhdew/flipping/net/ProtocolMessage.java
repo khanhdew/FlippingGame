@@ -5,6 +5,10 @@ import java.util.Base64;
 
 public class ProtocolMessage {
 
+    private ProtocolMessage() {
+        // Prevent instantiation of utility class
+    }
+
     public static String encodeHandshake(String name, int rows, int cols) {
         String safeName = (name == null || name.trim().isEmpty()) ? "Player" : name.trim().replace(" ", "_");
         return "HANDSHAKE " + safeName + " " + rows + " " + cols;
