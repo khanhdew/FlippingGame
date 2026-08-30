@@ -54,6 +54,10 @@ jobs:
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
             --main-class com.khanhdew.flipping.Launcher \
+            --icon src/main/resources/assets/img/icon.png \
+            --linux-shortcut \
+            --linux-menu-group Game \
+            --linux-app-category Game \
             --type deb \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \
@@ -67,6 +71,10 @@ jobs:
             --name FlippingGame \
             --main-jar FlippingGame-${{ env.VERSION }}.jar \
             --main-class com.khanhdew.flipping.Launcher \
+            --icon src/main/resources/assets/img/icon.png \
+            --linux-shortcut \
+            --linux-menu-group Game \
+            --linux-app-category Game \
             --type rpm \
             --app-version ${{ env.VERSION }} \
             --vendor "khanhdew" \
